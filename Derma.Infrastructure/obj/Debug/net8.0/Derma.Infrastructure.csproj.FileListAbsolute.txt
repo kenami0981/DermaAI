@@ -1,0 +1,16 @@
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\bin\Debug\net8.0\Derma.Infrastructure.deps.json
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\bin\Debug\net8.0\Derma.Infrastructure.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\bin\Debug\net8.0\Derma.Infrastructure.pdb
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\bin\Debug\net8.0\Derma.Domain.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\bin\Debug\net8.0\Derma.Domain.pdb
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.AssemblyInfo.cs
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.sourcelink.json
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.In.384EAB1F.Up2Date
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\refint\Derma.Infrastructure.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\Derma.Infrastructure.pdb
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Infrastructure\obj\Debug\net8.0\ref\Derma.Infrastructure.dll

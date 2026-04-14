@@ -1,0 +1,12 @@
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\bin\Debug\net8.0\Derma.Domain.deps.json
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\bin\Debug\net8.0\Derma.Domain.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\bin\Debug\net8.0\Derma.Domain.pdb
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.AssemblyInfoInputs.cache
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.AssemblyInfo.cs
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.csproj.CoreCompileInputs.cache
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.sourcelink.json
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\refint\Derma.Domain.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\Derma.Domain.pdb
+C:\Users\HP\Desktop\Studia\DermaAI\Derma.Domain\obj\Debug\net8.0\ref\Derma.Domain.dll
