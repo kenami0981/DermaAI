@@ -1,0 +1,36 @@
+name: acne-detection
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10
+
+  # Core data science
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+
+  # Image processing 
+  # - opencv
+
+  # Jupyter
+  - jupyter
+  - ipykernel
+
+  # pip dependencies
+  - pip
+  - pip:
+      - opencv-python-headless
+      # YOLO
+      - ultralytics
+
+      # Deep Learning
+      - torch
+      - torchvision
+      - tensorflow
+
+      # Utilities
+      - tqdm
+      - pillow
