@@ -1,5 +1,4 @@
-﻿using Derma.Application.CosmeticUsage;
-using Derma.Application.SkinAnalysis;
+﻿using Derma.Application.SkinAnalysis;
 using Derma.Domain;
 using Derma.Infrastructure;
 using MediatR;
@@ -17,13 +16,20 @@ namespace Derma.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<SkinAnalysis>>> GetCosmeticsUsage() {
+        public async Task<ActionResult<List<SkinAnalysis>>> GetSkinAnalysis() {
             return await _mediator.Send(new SkinAnalysisList.Query());
         }
         [HttpGet("{id}")]
         public async Task<ActionResult<SkinAnalysis>> GetSkinAnalysis(Guid id)
         {
             return await Mediator.Send(new SkinAnalysisDetails.Query { Id = id });
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditSkinAnalysis(Guid id, SkinAnalysis skinAnalysis)
+        {
+            skinAnalysis.Id = id;
+            await Mediator.Send(new SkinAnalysisEdit.Command { SkinAnalysis = skinAnalysis });
+            return Ok();
         }
     }
 }

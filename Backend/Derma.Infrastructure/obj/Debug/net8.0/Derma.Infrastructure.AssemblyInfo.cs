@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Derma.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a9a2313c9165ea2250063ffffe32bce21b1bedb9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7ce7d6327f6acdd22b245a15a7342bf933ecd5c0")]
 [assembly: System.Reflection.AssemblyProductAttribute("Derma.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Derma.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

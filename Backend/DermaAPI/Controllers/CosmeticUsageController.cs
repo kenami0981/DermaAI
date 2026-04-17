@@ -25,5 +25,11 @@ namespace Derma.API.Controllers
         {
             return await Mediator.Send(new CosmeticUsageDetails.Query { Id = id });
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditCosmeticUsage(Guid id, CosmeticUsage cosmeticUsage) {
+            cosmeticUsage.Id = id;
+            await Mediator.Send(new CosmeticUsageEdit.Command { CosmeticUsage = cosmeticUsage });
+            return Ok();
+        }
     }
 }
