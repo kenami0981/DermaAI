@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Conda / env temporary files
+condaenv.*
+*.condaenv.*
+*.log
+*.tmp
+
+# models
+*.pt
+*.h5
+
+# data
+data/
+datasets/
+
+# IDE / editors
+.vscode/
+.idea/
+
+# folders
+images/
+tests/
+runs/
+logs/
