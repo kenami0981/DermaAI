@@ -1,62 +1,36 @@
 from ultralytics import YOLO
-from pathlib import Path
-import os
+from config import DATA_YAML, RUNS_DIR, YOLO_WEIGHTS
 
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+def train_baseline():
 
-def setup_paths():
+    model = YOLO(str(YOLO_WEIGHTS))
 
-    current_path = Path.cwd()
-    
-    if current_path.name == "Models":
-        base_dir = current_path
-    else:
-        base_dir = current_path / "Models"
-    
-    if not base_dir.exists():
-        base_dir = Path(__file__).resolve().parent
-        if base_dir.name != "Models":
-            base_dir = base_dir.parent / "Models"
-
-    os.chdir(base_dir)
-    
-    data_yaml = base_dir / "data" / "data.yaml"
-    runs_dir = base_dir / "runs"
-    model_path = base_dir / "yolov8n.pt"
-    
-    runs_dir.mkdir(parents=True, exist_ok=True)
-    
-    if not data_yaml.exists():
-        raise FileNotFoundError(f"Missing data file: {data_yaml}")
-        
-    return data_yaml, runs_dir, model_path
-
-def train_baseline(data_path, save_dir, model_path):
-
-    model = YOLO(str(model_path))
-    
     model.train(
-        data=str(data_path),
-        epochs=1,
+        data=str(DATA_YAML),
+
+        epochs=10,
         imgsz=320,
-        batch=4,
+        batch=4, 
         workers=0,
-        project=str(save_dir),
-        name="acne_baseline_test",
+        device="cpu",
+
+        project=str(RUNS_DIR),
         exist_ok=True,
+
         plots=True,
-        device='cpu'
+        verbose=True,
+
+        patience=5,
+        save=True,
+        save_period=2
     )
 
 def main():
     try:
-        data_path, runs_path, model_path = setup_paths()
-        
-        train_baseline(data_path, runs_path, model_path)
-        
-        print(f"\nSuccess! All files are in: {Path.cwd()}")
+        train_baseline()
+        print(f"Training finished. Output in: {RUNS_DIR}")
     except Exception as e:
-        print(f"\nTraining failed: {e}")
+        print(f"Training failed: {e}")
 
 if __name__ == "__main__":
     main()

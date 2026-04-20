@@ -8,12 +8,12 @@ def main():
 
         model = YOLO(str(BEST_MODEL))
 
-        print(f"Validating: {BEST_MODEL.name}")
+        print(f"Model: {BEST_MODEL.name}")
 
         metrics = model.val(
             data=str(DATA_YAML),
             imgsz=320,
-            split="val",
+            split="test",
             device="cpu",
             project=str(RUNS_DIR),
             plots=True,
@@ -21,10 +21,12 @@ def main():
             exist_ok=True
         )
 
+
         print(f"Precision: {metrics.results_dict['metrics/precision(B)']:.3f}")
         print(f"Recall: {metrics.results_dict['metrics/recall(B)']:.3f}")
         print(f"mAP50: {metrics.results_dict['metrics/mAP50(B)']:.3f}")
         print(f"mAP50-95: {metrics.results_dict['metrics/mAP50-95(B)']:.3f}")
+
 
     except Exception as e:
         print(f"Error: {e}")

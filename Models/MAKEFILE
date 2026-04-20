@@ -1,0 +1,26 @@
+# WARNING: WORK IN PROGRESS 
+# DO NOT USE THIS MAKEFILE YET
+
+#################################################################################
+
+# ACNE DETECTION Makefile
+
+# This file automates the environment setup, data acquisition, and model 
+# lifecycle for the Acne Detection YOLO model 
+
+#################################################################################
+
+# CONFIG
+
+ENV_NAME=acne-detection
+SETUP=
+
+# HELP
+.DEFAULT_GOAL := help
+help:
+	@echo "Available commands:"
+	@echo "make 00_1_env          - create conda env"
+	@echo "make 00_2_model        - download model"
+	@echo "make 00_3_data         - download dataset"
+	@echo "make 01_train        - train YOLO"
+	@echo "make 02_predict      - run inference"
