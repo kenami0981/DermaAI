@@ -1,5 +1,8 @@
+using Derma.Application.CosmeticUsage;
+using Derma.Application.SkinAnalysis;
 using Derma.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,10 @@ builder.Services.AddCors(opt =>
         policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
     });
 });
+builder.Services.AddMediatR(cfg =>
+cfg.RegisterServicesFromAssembly(typeof(CosmeticUsageList.Handler).Assembly));
+builder.Services.AddMediatR(cfg =>
+cfg.RegisterServicesFromAssembly(typeof(SkinAnalysisList.Handler).Assembly));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
