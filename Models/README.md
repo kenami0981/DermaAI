@@ -157,6 +157,8 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 # 5. Google Colab 
 
-If local hardware is too weak for the dataset size, training can be done in Google Colab.
+If local hardware is too weak for the dataset size, training can be done in Google Colab using high-performance T4 GPUs.
 
-TBD
+
+All intructions, training scripts, environment setup, and evaluation tools are located in the following notebook:
+> `Models/yolo_training_colab.ipynb`
