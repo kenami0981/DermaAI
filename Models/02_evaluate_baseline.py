@@ -1,10 +1,16 @@
 from ultralytics import YOLO
 from config import BEST_MODEL, DATA_YAML, RUNS_DIR
+from pathlib import Path
+from datetime import datetime
+import shutil
 
 def main():
     try:
         if not BEST_MODEL.exists():
             raise FileNotFoundError("Model not found. Train first")
+        
+        run_name = f"baseline_valid{datetime.now().strftime('%Y%m%d_%H%M')}"
+        run_dir = RUNS_DIR / run_name
 
         model = YOLO(str(BEST_MODEL))
 
@@ -12,6 +18,7 @@ def main():
 
         metrics = model.val(
             data=str(DATA_YAML),
+            name=run_name,
             imgsz=320,
             split="val",
             device="cpu",

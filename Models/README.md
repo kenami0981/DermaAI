@@ -32,22 +32,57 @@ TBD
 
 ---
 
-## Dataset
-
-The dataset is NOT stored in the repository.
-
-### Download dataset:
-[https://universe.roboflow.com/kritsakorn/acne-kbm0q/dataset/21](https://universe.roboflow.com/kritsakorn/acne-kbm0q/dataset/21)
-
----
-
 ## Setup For YOLO
 
-1. Open the link above  
+
+### Datasets 
+
+1. Download YOLO datasets from Roboflow:
+
+- https://universe.roboflow.com/kritsakorn/acne-kbm0q/dataset/21
+- https://universe.roboflow.com/dermafind/acne-zqozl/dataset/3
+- https://universe.roboflow.com/ance-yolo/acne-yolo/dataset/1
+- https://www.kaggle.com/datasets/cubeai/acne-detection-for-yolov8
+
+
+Select:
+
 2. Select `YOLOv8` format  
 3. Download dataset (ZIP file)  
 4. Extract the ZIP on your computer  
-5. Place the dataset into `Models/data/`
+5. Place the dataset into `Models/data/{name_of_the_dataset}` Example: `Models/data/acne.v3i.yolov8/`
+
+6. Add dataset path in pipeline (`Models/data/yolo_dataset_merge_pipeline.py`):
+
+```python
+DATASETS = [
+    BASE_DIR / "Acne.v21i.yolov8",
+    BASE_DIR / "acne.v3i.yolov8",
+    BASE_DIR / "new_dataset",
+]
+```
+
+7. Run the following python to check if everything is OK with the dataset structure:
+
+```bash
+python Models/yolo_dataset_validator.py 
+```
+
+8. And if everything is OK run:
+```bash
+python Models/yolo_dataset_merge_pipeline.py
+
+```
+
+It will merge all your datasets into `dataset_final/` and make all annotations use a single class (class = 0)
+
+---
+
+### Important
+
+* `dataset_final/` is **deleted and recreated every run**
+* Only datasets in `data` folder are included
+* You can't “append” data - the dataset is always rebuilt from scratch to ensure consistency between images, labels, and splits. This avoids duplication, broken references, and mixed label states after partial updates.
 
 ---
 
@@ -159,6 +194,5 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 If local hardware is too weak for the dataset size, training can be done in Google Colab using high-performance T4 GPUs.
 
-
-All intructions, training scripts, environment setup, and evaluation tools are located in the following notebook:
+All intructions, training scripts, environment setup, evaluation tools and hyperparameter optimization pipeline are located in the following notebook:
 > `Models/yolo_training_colab.ipynb`

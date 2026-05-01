@@ -11,9 +11,7 @@ dependencies:
   - pandas
   - matplotlib
   - scikit-learn
-
-  # Image processing 
-  # - opencv
+  - scipy
 
   # Jupyter
   - jupyter
@@ -22,15 +20,21 @@ dependencies:
   # pip dependencies
   - pip
   - pip:
-      - opencv-python-headless
       # YOLO
       - ultralytics
 
-      # Deep Learning
+      # Deep Learning (PyTorch stack)
       - torch
       - torchvision
-      - tensorflow
+
+      # Optimization
+      - optuna
+      - pyyaml
 
       # Utilities
       - tqdm
       - pillow
+      - opencv-python-headless
+
+      # Optional logging
+      - tensorboard
