@@ -20,21 +20,25 @@ dependencies:
   # pip dependencies
   - pip
   - pip:
-      # YOLO
+      # YOLO & Computer Vision
       - ultralytics
+      - opencv-python-headless
+      - seaborn
 
       # Deep Learning (PyTorch stack)
       - torch
       - torchvision
+      - torchaudio
 
-      # Optimization
+      # Optimization & Config
       - optuna
       - pyyaml
 
       # Utilities
       - tqdm
       - pillow
-      - opencv-python-headless
+      - requests
+      - imagehash
 
       # Optional logging
       - tensorboard

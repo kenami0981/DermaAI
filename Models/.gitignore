@@ -10,6 +10,7 @@ condaenv.*
 *.tmp
 
 # models
+/models
 *.pt
 *.h5
 
@@ -23,6 +24,7 @@ datasets/
 
 # folders
 images/
+images_preprocessed
 tests/
 runs/
 logs/
