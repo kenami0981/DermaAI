@@ -3,35 +3,34 @@ import os
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-# ROOT
+# CORE PATHS
 ROOT = Path(__file__).resolve().parent
-
-# DATA
 DATA_DIR = ROOT / "data" / "dataset_final"
-DATA_YAML = DATA_DIR / "data.yaml"
-
-# PRETRAINED MODEL (to start training)
-PRETRAINED_WEIGHTS = ROOT / "models" / "yolov8n.pt"
-
-# DEPLOY MODEL 
-BEST_MODEL = ROOT / "models" / "acne_best.pt"
-
-# RUNS (training outputs)
+WEIGHTS_DIR = ROOT / "weights"
 RUNS_DIR = ROOT / "runs"
 
-# IMAGES
-IMAGES_DIR = ROOT / "images"
+# VERSION CONTROL
+CURRENT_VERSION = "v2"
 
-# Class weights assigned based on clinical acne severity scales.
-# Sources:
-# GAGS (Global Acne Grading System): https://pubmed.ncbi.nlm.nih.gov/3831839/
-# DermNet (Acne classification): https://dermnetnz.org/topics/acne-vulgaris
+# DYNAMIC CONFIGURATION 
+TRAINING_RUN_NAME = f"acne_train_production_{CURRENT_VERSION}"
+BEST_MODEL = Path(WEIGHTS_DIR / f"best_{CURRENT_VERSION}.pt")
+HPARAM_SEARCH_RESULT = Path(RUNS_DIR / f"acne_hparam_study_{CURRENT_VERSION}" / f"acne_hparam_search_{CURRENT_VERSION}_best.yaml")
 
-# CLASS_WEIGHTS = {
-#     "blackheads": 0.15, # Zaskórniki otwarte (niezapalne)
-#     "whiteheads": 0.15, # Zaskórniki zamknięte (niezapalne)
-#     "papules": 0.50,  # Grudki (stan zapalny)
-#     "pustules": 0.75, # Krosty (ropne, zaawansowany stan zapalny)
-#     "nodules": 1.00,  # Guzki (najcięższe, ryzyko bliznowacenia)
-#     "dark spot": 0.05 # Przebarwienia (zmiany nieaktywne / pozapalne)
-# }
+# CONSTANTS 
+DATA_YAML = DATA_DIR / "data.yaml"
+IMAGES_DIR = ROOT / "images" / "raw"
+BASE_MODEL = WEIGHTS_DIR /"yolov8s.pt"
+PRETRAINED_WEIGHTS = Path(WEIGHTS_DIR / BASE_MODEL)
+
+IMG_SIZE = 640
+CONF_THRESHOLD = 0.15
+
+DATASETS = [
+    DATA_DIR / "acne yolo.v13-original-dataset.yolov8",
+    DATA_DIR / "acne-detection-yolo.v1i.yolov8",
+    DATA_DIR / "acne.v3i.yolov8",
+    DATA_DIR / "Acne.v21i.yolov8",
+    DATA_DIR / "cubeai-acne-detection-for-yolov8",
+    DATA_DIR / "yolov8-acne-detection.v4i.yolov8",
+]

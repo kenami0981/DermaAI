@@ -1,94 +1,34 @@
-# DermaAI – Acne Detection
+# DermaAI - Acne Detection
 
 ## Table of Contents
 * [1. Project Overview](#1-dermaai--acne-detection)
-    * [Dataset](#dataset)
-    * [Setup For YOLO](#setup-for-yolo)
-    * [Setup For TensorFlow CNN](#setup-for-tensorflow-cnn)
 * [2. Conda Environment Setup](#2-conda-environment-setup)
-    * [Create environment](#create-environment)
-    * [Activate environment](#activate-environment)
-    * [Update environment](#update-environment-optional)
-    * [Remove environment](#remove-environment-optional)
+    * [Create/Activate Environment](#create-environment)
+    * [Update/Remove Environment](#update-environment-optional)
 * [3. VS Code Setup](#3-vs-code-setup-interpreter-selection)
-    * [Select Python interpreter](#select-python-interpreter)
-    * [Important notes](#important-notes)
-* [4. YOLOv8 Windows + Conda + VS Code – Troubleshooting](#4-yolov8-windows--conda--vs-code--troubleshooting)
-    * [1. Wrong Python Version](#1-wrong-python-version-eg-313-instead-of-310)
-    * [2. ModuleNotFoundError](#2-modulenotfounderror-ultralytics)
-    * [3. Training Doesn't Start](#3-training-doesnt-start-no-epoch-1)
-    * [4. OMP Error #15](#4-omp-error-15-crash)
-* [5. Google Colab](#5-google-colab)
+    * [Select Python Interpreter](#select-python-interpreter)
+    * [Important Notes](#important-notes)
+* [4. Directory Structure & Workspace](#4-directory-structure--workspace)
+    * [Configuration (config.py)](#configuration-configpy)
+* [5. Pipeline Execution](#5-pipeline-execution)
+    * [5.1 Data Preparation (merge_datasets.py)](#51-data-preparation-merge_datasetspy)
+    * [5.2 Training Options (Local vs Cloud)](#52-training-options)
+    * [5.3 Validation & Training Analysis](#53-validation--training-analysis)
+    * [5.4 Inference (predict.py)](#54-inference-predictpy)
+* [6. YOLOv8 Windows + Conda + VS Code - Troubleshooting](#6-yolov8-windows--conda--vs-code--troubleshooting)
+    * [6.1 Wrong Python Version](#61-wrong-python-version-eg-313-instead-of-310)
+    * [6.2 ModuleNotFoundError](#62-modulenotfounderror-ultralytics)
+    * [6.3 Training Doesn't Start](#63-training-doesnt-start-no-epoch-1)
+    * [6.4 OMP Error #15 (Crash)](#64-omp-error-15-crash)
+* [7. Model Registry](#7-model-registry)
 
 ---
 
-# 1. DermaAI – Acne Detection
+# 1. DermaAI - Acne Detection
 
 This part focuses on detecting acne from facial images using:
-- YOLO 
-- CNN 
-
-TBD
-
----
-
-## Setup For YOLO
-
-
-### Datasets 
-
-1. Download YOLO datasets from Roboflow:
-
-- https://universe.roboflow.com/kritsakorn/acne-kbm0q/dataset/21
-- https://universe.roboflow.com/dermafind/acne-zqozl/dataset/3
-- https://universe.roboflow.com/ance-yolo/acne-yolo/dataset/1
-- https://www.kaggle.com/datasets/cubeai/acne-detection-for-yolov8
-
-
-Select:
-
-2. Select `YOLOv8` format  
-3. Download dataset (ZIP file)  
-4. Extract the ZIP on your computer  
-5. Place the dataset into `Models/data/{name_of_the_dataset}` Example: `Models/data/acne.v3i.yolov8/`
-
-6. Add dataset path in pipeline (`Models/data/yolo_dataset_merge_pipeline.py`):
-
-```python
-DATASETS = [
-    BASE_DIR / "Acne.v21i.yolov8",
-    BASE_DIR / "acne.v3i.yolov8",
-    BASE_DIR / "new_dataset",
-]
-```
-
-7. Run the following python to check if everything is OK with the dataset structure:
-
-```bash
-python Models/yolo_dataset_validator.py 
-```
-
-8. And if everything is OK run:
-```bash
-python Models/yolo_dataset_merge_pipeline.py
-
-```
-
-It will merge all your datasets into `dataset_final/` and make all annotations use a single class (class = 0)
-
----
-
-### Important
-
-* `dataset_final/` is **deleted and recreated every run**
-* Only datasets in `data` folder are included
-* You can't “append” data - the dataset is always rebuilt from scratch to ensure consistency between images, labels, and splits. This avoids duplication, broken references, and mixed label states after partial updates.
-
----
-
-## Setup For TensorFlow CNN
-
-TBD
+- **YOLO (You Only Look Once)**: object detection framework used for real-time lesion localization. The model predicts bounding box coordinates and confidence scores in a single forward pass, ensuring efficient processing of facial images.
+- **CNN (Convolutional Neural Networks)**: TBD
 
 ---
 
@@ -121,7 +61,7 @@ conda env update -f environment.yml --prune
 ---
 ## Remove environment (optional)
 ```bash
-conda remove --name derma-models --all
+conda remove --name acne-detection --all
 ```
 ---
 
@@ -148,11 +88,90 @@ To ensure the project runs correctly, VS Code must use the Conda environment cre
 
 ---
 
-# 4. YOLOv8 Windows + Conda + VS Code – Troubleshooting
+## 4. Directory Structure & Workspace
+
+Based on the `config.py` logic and project architecture:
+
+| Directory | Purpose |
+| --- | --- |
+| **`Models/src/`** | Contains executable scripts (`train.py`, `predict.py`, `validate.py`, `merge_pipeline.py`) |
+| **`Models/data/`** | Raw datasets from Roboflow nad Kaggle |
+| **`Models/data/dataset_final/`** | **Dynamic.** Unified dataset generated by the merge pipeline |
+| **`Models/weights/`** | Store your `.pt` files here. `predict.py` looks for `best_{CURRENT_VERSION}.pt` here |
+| **`Models/images/raw/`** | Input folder for testing. Put your photos here for inference |
+| **`Models/runs/`** | Auto-generated outputs, logs, HPO results, and detection images |
+| **`Models/notebooks/`** | Analysis and HPO history for each model version |
 
 ---
 
-### 1. Wrong Python Version (eg. 3.13 instead of 3.10)
+### Configuration (`config.py`)
+
+The system uses a central configuration file to manage versions and paths:
+
+* **`CURRENT_VERSION`**: Set this (e.g., `"v2"`) to switch the entire pipeline to a specific model version.
+* **`BEST_MODEL`**: Automatically points to `weights/best_{CURRENT_VERSION}.pt`.
+* **`CONF_THRESHOLD`**: Set it yourself for sensitive detection. Any detection with a confidence score below this threshold is automatically discarded and excluded from prediction.
+
+---
+# 5. Pipeline Execution
+
+Follow these steps in order to build, train, and use the acne detection model.
+
+### 5.1 Data Preparation (`merge_datasets.py`)
+
+**Command:** `python Models/src/yolo_dataset_merge_pipeline.py`
+
+* **Pre-requisite (Data Acquisition):** Download datasets (listed in config.py) in **YOLOv8 format** and place them into `Models/data/`
+
+* **What it does:** Scans raw datasets, removes visual duplicates (pHash), and merges everything into a clean `dataset_final/` folder.
+* **Merge Strategies:** 
+    * `[0] Standard`: Keeps all images.
+    * `[A] Scenario A`: Strict uniqueness (prioritizes Train).
+    * `[B] Scenario B`: Leak-free (removes Train-duplicates from Val/Test). **Highly Recommended.**
+
+
+### 5.2 Training Options
+
+Depending on your hardware, choose one of the methods below:
+
+#### Option A: Local Training (`train.py`)
+**Command:** `python Models/src/train.py`
+* **What it does:** Starts the YOLOv8 training process. It auto-detects your GPU, applies optimized hyperparameters, and handles crash recovery (**Smart Resume**).
+* **Result:** Automatically copies the best weights to **weights** folder upon completion.
+
+#### Option B: Cloud Training (`yolo_training_colab.ipynb`)
+**Location:** `Models/src/yolo_training_colab.ipynb`
+* **What it does:** Designed for users with insufficient local hardware. Leverages Google Colab's high-performance T4 GPUs.
+* **Key Feature:** Includes the full **Hyperparameter Optimization (HPO)** pipeline using Optuna and automated environment setup.
+* **IMPORTANT:** If your local hardware is insufficient, it is **strongly recommended** to use this notebook to avoid system crashes or extremely long training times.
+
+
+
+### 5.3 Validation & Training Analysis
+
+**Command:** `python Models/src/validate.py`
+
+* **What it does:** Benchmarks the model, generating precision/recall plots and `results.json`.
+* **Hyperparameter Optimization & Training Analysis:** For detailed performance tracking, HPO (Optuna) results, and historical training analysis, refer to the versioned notebooks (e.g. `yolo_analysis_v1.ipynb`). 
+
+If you want to make your own analysis copy `yolo_analysis_v2.ipynb`.
+
+---
+
+### 5.4 Inference (`predict.py`)
+
+**Command:** `python Models/predict.py --image path/to/image.jpg`
+
+* **What it does:** Takes a photo and performs detection. It calculates a **Acne Score (0-1)** and saves an annotated image with a JSON report.
+* **When to use:** For real-world testing.
+
+---
+
+# 6. YOLOv8 Windows + Conda + VS Code - Troubleshooting
+
+
+
+### 6.1. Wrong Python Version (eg. 3.13 instead of 3.10)
 **Symptom:** you tried `conda activate` and it runs, but `python --version` shows system Python.
 **Fix (PowerShell):**
 ```powershell
@@ -163,7 +182,7 @@ conda init powershell
 
 ---
 
-### 2. ModuleNotFoundError (ultralytics)
+### 6.2. ModuleNotFoundError (ultralytics)
 **Symptom:** `import YOLO` fails.
 **Fix (In active env):**
 ```bash
@@ -173,14 +192,14 @@ python -c "from ultralytics import YOLO; print('OK')"
 
 ---
 
-### 3. Training Doesn't Start (No Epoch 1)
+### 6.3. Training Doesn't Start (No Epoch 1)
 **Symptom:** Logs stop at `Plotting labels...`.
 **Cause:** Wrong execution method or missing `if __name__ == "__main__":`.
 **Fix:** Run manually in terminal: `python my_script.py` NOT with vs code "Run Python File".
 
 ---
 
-### 4. OMP Error #15 (Crash)
+### 6.4. OMP Error #15 (Crash)
 **Symptom:** Immediate crash after starting training.
 **Fix:** Add this to the very top of your `.py` file:
 ```python
@@ -190,9 +209,13 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 ---
 
-# 5. Google Colab 
+# 7. Model Registry
 
-If local hardware is too weak for the dataset size, training can be done in Google Colab using high-performance T4 GPUs.
+Central system for tracking model versions, datasets, and performance benchmarks stored in **MODEL_REGISTRY.md**.
 
-All intructions, training scripts, environment setup, evaluation tools and hyperparameter optimization pipeline are located in the following notebook:
-> `Models/yolo_training_colab.ipynb`
+### Versioning Policy
+**PATCH (v1.0.X)** -> Script/metadata fixes. No retraining.
+
+**MINOR (v1.X)** -> New HParams, dataset expansion, preprocessing. Same architecture.
+
+**MAJOR (vX.0)** -> Architecture change (e.g., v8n -> v8s, v8 - v11), new classes etc.
