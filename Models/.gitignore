@@ -17,6 +17,7 @@ condaenv.*
 # data
 data/
 datasets/
+datasets-archive/
 
 # IDE / editors
 .vscode/
