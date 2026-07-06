@@ -39,6 +39,7 @@ dependencies:
       - pillow
       - requests
       - imagehash
+      - pybktree
 
       # Optional logging
       - tensorboard

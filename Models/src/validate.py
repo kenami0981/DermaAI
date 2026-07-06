@@ -23,7 +23,7 @@ Usage:
 Output:
 
 * Visuals: runs/validation/val_[model]_[timestamp]/
-* Report:  runs/validation/val_[model]_[timestamp]/results.json
+* Report:   runs/validation/val_[model]_[timestamp]/results.json
 
 """
 
@@ -60,7 +60,7 @@ def get_device():
     """Auto-select CPU/GPU."""
     return "cuda:0" if torch.cuda.is_available() else "cpu"
 
-def run_validation_pipeline(model_arg=None, imgsz=640, split="test", device_arg=None):
+def run_validation_pipeline(model_arg=None, imgsz=640, split="test", device_arg=None, augment=True):
     """
     Main orchestration logic for validation - analogous to run_prediction_pipeline
     """
@@ -85,7 +85,8 @@ def run_validation_pipeline(model_arg=None, imgsz=640, split="test", device_arg=
     print(f"[SESSION] {session_name}")
     print(f"[MODEL]   {model_path.name}")
     print(f"[SPLIT]   {split}")
-    print(f"[DEVICE]  {device}\n")
+    print(f"[DEVICE]  {device}")
+    print(f"[TTA]     {augment}\n")
 
     # 4. Run Validation Execution
     metrics = model.val(
@@ -97,7 +98,8 @@ def run_validation_pipeline(model_arg=None, imgsz=640, split="test", device_arg=
         name=session_name,
         plots=True,
         verbose=False,
-        exist_ok=True
+        exist_ok=True,
+        augment=False
     )
 
     # 5. Extract Results
@@ -107,6 +109,7 @@ def run_validation_pipeline(model_arg=None, imgsz=640, split="test", device_arg=
         "device": device,
         "imgsz": imgsz,
         "split": split,
+        "tta_enabled": augment,
         "metrics": {
             "precision": safe_get(metrics, "metrics/precision(B)"),
             "recall": safe_get(metrics, "metrics/recall(B)"),
@@ -138,6 +141,8 @@ def main():
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--device", type=str, default=None, help="cpu or cuda:0")
     parser.add_argument("--split", type=str, default="val", choices=["val", "test", "train"])
+    parser.add_argument("--no_tta", action="store_false", dest="tta", help="Disable Test-Time Augmentation")
+    parser.set_defaults(tta=True)
 
     args = parser.parse_args()
 
@@ -146,7 +151,8 @@ def main():
             model_arg=args.model,
             imgsz=args.imgsz,
             split=args.split,
-            device_arg=args.device
+            device_arg=args.device,
+            augment=args.tta
         )
     except Exception as e:
         print(f"\n[CRITICAL ERROR] {e}")
