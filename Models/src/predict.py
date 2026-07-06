@@ -33,6 +33,7 @@ import argparse
 import cv2
 import shutil
 import sys
+import torch
 
 from ultralytics import YOLO
 from pathlib import Path
@@ -137,7 +138,7 @@ def extract_detections(results, model):
     return detections
 
 
-def run_inference(image_path, model, session_dir, preprocess=True):
+def run_inference(image_path, model, session_dir, preprocess=True, tta=True):
     """
     Run full prediction pipeline on one image.
     Returns:
@@ -154,27 +155,92 @@ def run_inference(image_path, model, session_dir, preprocess=True):
     if img_org is None:
         return None
 
-    # Apply enhancement if enabled
-    img_input = enhance_details(img_org) if preprocess else img_org
-
     img_output_folder = session_dir / f"img_{image_path.stem}"
     img_output_folder.mkdir(parents=True, exist_ok=True)
 
-    # Run YOLO prediction
+    # Apply enhancement if enabled
+    img_input = enhance_details(img_org) if preprocess else img_org
 
-    results = model.predict(
-        source=img_input,
-        imgsz=IMG_SIZE,
-        conf=CONF_THRESHOLD,
-        save=True,
-        project=str(img_output_folder),
-        name="temp",
-        show_labels=False, # only boxes are drawn (no class names)
-        exist_ok=True
-    )
+    # Run YOLO prediction
+    if tta:
+        # Generate image variants for multi-scale prediction
+        img_flipped = cv2.flip(img_input, 1)
+
+        # Run predictions on variants (returns clean data without saving to disk)
+        res_scale1 = model.predict(source=img_input, imgsz=int(IMG_SIZE * 1.25), conf=CONF_THRESHOLD, save=False, verbose=False, augment=False)
+        res_scale2 = model.predict(source=img_input, imgsz=IMG_SIZE, conf=CONF_THRESHOLD, save=False, verbose=False, augment=False)
+        res_flipped = model.predict(source=img_flipped, imgsz=IMG_SIZE, conf=CONF_THRESHOLD, save=False, verbose=False, augment=False)
+
+        # Run the main inference pass, which will create the folder structure and save the base file
+        # Dynamic line thickness calculation for the built-in save method
+        h, w = img_input.shape[:2]
+        dynamic_line_thickness = max(round(max(h, w) / 600), 1)
+
+        results = model.predict(
+            source=img_input,
+            imgsz=IMG_SIZE,
+            conf=CONF_THRESHOLD,
+            save=True,
+            project=str(img_output_folder),
+            name="temp",
+            show_labels=False, # only boxes are drawn (no class names)
+            line_thickness=dynamic_line_thickness,
+            exist_ok=True,
+            augment=False 
+        )
+
+        # Securely merge objects using tensor operations
+        if results and len(results) > 0 and results[0].boxes is not None:
+            main_b = results[0].boxes
+            
+            # Lists for individual tensor components, starting with the main inference pass
+            all_data = [main_b.data]
+
+            def process_and_collect(source_results, is_flipped=False):
+                if source_results and len(source_results) > 0 and source_results[0].boxes is not None:
+                    src_b = source_results[0].boxes
+                    if len(src_b) > 0:
+                        tensor_data = src_b.data.clone()
+                        if is_flipped:
+                            # Flip the X coordinates for bounding boxes from the mirror reflection
+                            img_w = main_b.orig_shape[1]
+                            x1 = tensor_data[:, 0].clone()
+                            x2 = tensor_data[:, 2].clone()
+                            tensor_data[:, 0] = img_w - x2
+                            tensor_data[:, 2] = img_w - x1
+                        all_data.append(tensor_data)
+
+            process_and_collect(res_scale1)
+            process_and_collect(res_scale2)
+            process_and_collect(res_flipped, is_flipped=True)
+
+            # If we collected additional boxes, natively concatenate them into one large tensor
+            if len(all_data) > 1:
+                results[0].boxes.data = torch.cat(all_data, dim=0)
+    else:
+        # Dynamic line thickness calculation for the non-TTA block
+        h, w = img_input.shape[:2]
+        dynamic_line_thickness = max(round(max(h, w) / 600), 1)
+
+        results = model.predict(
+            source=img_input,
+            imgsz=IMG_SIZE,
+            conf=CONF_THRESHOLD,
+            save=True,
+            project=str(img_output_folder),
+            name="temp",
+            show_labels=False,
+            line_thickness=dynamic_line_thickness,
+            exist_ok=True,
+            augment=False
+        )
 
     if results and len(results) > 0:
-        annotated_img = results[0].plot(labels=False, conf=False)
+        # Calculate dynamic line width: e.g. 2 pixels for smaller images, thicker for larger images
+        h, w = results[0].boxes.orig_shape
+        dynamic_line_width = max(round(max(h, w) / 600), 1)  # For 1280px it yields a line thickness of ~2
+
+        annotated_img = results[0].plot(labels=False, conf=False, line_width=dynamic_line_width)
         clean_img_path = img_output_folder / "image_clean.jpg"
         cv2.imwrite(str(clean_img_path), annotated_img)
 
@@ -196,6 +262,7 @@ def run_inference(image_path, model, session_dir, preprocess=True):
     res_data = {
         "score": score,
         "time": round(end - start, 3),
+        "tta_applied": tta,
         "detections": detections,
         "image": {
             "input": image_path.name,
@@ -209,7 +276,7 @@ def run_inference(image_path, model, session_dir, preprocess=True):
     return res_data
 
 
-def run_pipeline(input_arg, preprocess=True):
+def run_pipeline(input_arg, preprocess=True, tta=True):
     """Main orchestration logic for inference."""
     model = load_model()
     
@@ -237,11 +304,11 @@ def run_pipeline(input_arg, preprocess=True):
     session_name = f"predict_{BEST_MODEL.stem}_{timestamp}"
     session_dir = RUNS_DIR / "predict" / session_name
 
-    print(f"\nSTARTING INFERENCE | Images: {len(files)} | Session: {session_name}\n")
+    print(f"\nSTARTING INFERENCE | Images: {len(files)} | Session: {session_name} | TTA: {tta}\n")
 
     all_results = []
     for img_p in files:
-        res = run_inference(img_p, model, session_dir, preprocess=preprocess)
+        res = run_inference(img_p, model, session_dir, preprocess=preprocess, tta=tta)
         if res:
             all_results.append(res)
 
@@ -253,12 +320,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--image", type=str, default=None, help="Path to image or directory")
     parser.add_argument("--no_preprocess", action="store_false", dest="preprocess", help="Disable enhancement")
-    parser.set_defaults(preprocess=True)
+    parser.add_argument("--no_tta", action="store_false", dest="tta", help="Disable Test-Time Augmentation")
+    parser.set_defaults(preprocess=True, tta=True)
 
     args = parser.parse_args()
 
     try:
-        run_pipeline(args.image, preprocess=args.preprocess)
+        run_pipeline(args.image, preprocess=args.preprocess, tta=args.tta)
     except Exception as e:
         print(f"Error: {e}")
 

@@ -42,7 +42,8 @@ import random
 import sys
 import yaml
 import imagehash
-from PIL import Image
+import pybktree
+from PIL import Image, ImageEnhance
 from pathlib import Path
 from tqdm import tqdm
 
@@ -59,7 +60,7 @@ from config import DATA_DIR, DATASETS
 OUTPUT_DIR = DATA_DIR
 
 SPLITS = ["train", "valid", "test"]
-PHASH_THRESHOLD = 2 
+PHASH_THRESHOLD = 4 
 
 
 
@@ -68,9 +69,14 @@ PHASH_THRESHOLD = 2
 def get_visual_hash(path: Path):
     try:
         with Image.open(path) as img:
-            return imagehash.phash(img)
+            img_gray = img.convert("L")
+            enhanced = ImageEnhance.Contrast(img_gray).enhance(1.3)
+            return imagehash.phash(enhanced)
     except Exception:
         return None
+
+def bk_hamming_dist(x, y):
+    return bin(x ^ y).count('1')
 
 def analyze_visual_duplicates():
     """
@@ -78,6 +84,7 @@ def analyze_visual_duplicates():
 
     """
     registry = {}
+    tree = pybktree.BKTree(bk_hamming_dist)
     all_tasks = []
 
     for ds_path in DATASETS:
@@ -93,20 +100,25 @@ def analyze_visual_duplicates():
         v_hash = get_visual_hash(item['path'])
         if v_hash is None: continue
 
-        found_key = None
-        for stored_hash in registry.keys():
-            if v_hash - stored_hash <= PHASH_THRESHOLD:
-                found_key = stored_hash
-                break
-        
-        if found_key:
-            registry[found_key].append(item)
+        hash_int = int(str(v_hash), 16)
+
+        if not tree:
+            tree.add(hash_int)
+            registry[hash_int] = [item]
         else:
-            registry[v_hash] = [item]
+            matches = tree.find(hash_int, PHASH_THRESHOLD)
+            if matches:
+                best_match_hash = min(matches, key=lambda x: x[0])[1]
+                registry[best_match_hash].append(item)
+            else:
+                tree.add(hash_int)
+                registry[hash_int] = [item]
+
+    final_registry = {imagehash.hex_to_hash(hex(k)[2:].zfill(16)): v for k, v in registry.items()}
 
     # Stats Simulation
     stats = {'initial': {s: 0 for s in SPLITS}, 'A': {s: 0 for s in SPLITS}, 'B': {s: 0 for s in SPLITS}}
-    for entries in registry.values():
+    for entries in final_registry.values():
         for e in entries: stats['initial'][e['split']] += 1
         s_list = [e['split'] for e in entries]
         
@@ -128,7 +140,7 @@ def analyze_visual_duplicates():
     for s in SPLITS:
         print(f"{s:<10} | {stats['initial'][s]:<10} | {stats['A'][s]:<10} | {stats['B'][s]:<10}")
     
-    return registry
+    return final_registry
 
 # VALIDATION FUNCTIONS 
 
@@ -240,7 +252,7 @@ def safe_copy(src: Path, dst: Path):
             return new_dst
         i += 1
 
-def convert_labels_to_single_class(label_path: Path):
+def convert_labels_to_single_class(label_path: Path, dataset_name: str):
     """
     Convert YOLO all labels to single-class format.
     Input: class x y w h -> Output: 0 x y w h
@@ -248,14 +260,27 @@ def convert_labels_to_single_class(label_path: Path):
     with open(label_path, "r") as f:
         lines = f.readlines()
 
+    # Define class indexes to keep based on Roboflow project names
+    # acne-detection-v2.2 -> Acne(0), Blackheads(2), Whiteheads(5), black_dots(6), pustules(8)
+    # acne04-detection -> keep all (0, 1, 2, 3) 
+    allowed_classes = set()
+    if "acne-detection-v2" in dataset_name.lower():
+        allowed_classes = {0, 2, 5, 6, 8}
+    elif "acne04" in dataset_name.lower():
+        allowed_classes = {0, 1, 2, 3}
+    else:
+        allowed_classes = set(range(20))
+
     new_lines = []
     for line in lines:
         parts = line.strip().split()
         if len(parts) != 5:
             continue  # skip malformed lines
         
-        parts[0] = "0" # Overwrite class to 0
-        new_lines.append(" ".join(parts))
+        class_id = int(parts[0])
+        if class_id in allowed_classes:
+            parts[0] = "0" # Overwrite class to 0
+            new_lines.append(" ".join(parts))
 
     return "\n".join(new_lines)
 
@@ -290,16 +315,20 @@ def merge_datasets(registry, scenario):
             split = item['split']
             out_img_dir = OUTPUT_DIR / split / "images"
             out_lbl_dir = OUTPUT_DIR / split / "labels"
+
+            dataset_name = item['ds'].replace(".", "_")
+            
+            old_label_path = item['path'].parent.parent / "labels" / f"{item['path'].stem}.txt"
+            converted_content = convert_labels_to_single_class(old_label_path, dataset_name)
+            
+            if not converted_content.strip():
+                continue
+
             out_img_dir.mkdir(parents=True, exist_ok=True)
             out_lbl_dir.mkdir(parents=True, exist_ok=True)
 
-            dataset_name = item['ds'].replace(".", "_")
             new_name = f"{dataset_name}_{item['path'].name}"
             new_img_path = safe_copy(item['path'], out_img_dir / new_name)
-
-            # Process label
-            old_label_path = item['path'].parent.parent / "labels" / f"{item['path'].stem}.txt"
-            converted_content = convert_labels_to_single_class(old_label_path)
             
             with open(out_lbl_dir / (new_img_path.stem + ".txt"), "w") as f:
                 f.write(converted_content)
