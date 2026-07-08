@@ -24,8 +24,8 @@ IMAGES_DIR = ROOT / "images" / "raw"
 BASE_MODEL = WEIGHTS_DIR /"yolov8s.pt"
 PRETRAINED_WEIGHTS = Path(WEIGHTS_DIR / BASE_MODEL)
 
-IMG_SIZE = 640
-CONF_THRESHOLD = 0.3
+IMG_SIZE = 1280
+CONF_THRESHOLD = 0.2
 
 DATASETS = [
     # ROOT / "data" / "acne yolo.v13-original-dataset.yolov8",
