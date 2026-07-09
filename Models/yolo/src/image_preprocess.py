@@ -15,7 +15,7 @@ Usage:
 
 1. Configure IMAGES_DIR in config.py.
 2. Select the target folder in the main block.
-3. Run: python Models/src/image_preprocess.py
+3. Run: python Models/yolo/src/image_preprocess.py
 
 Output:
 
@@ -155,7 +155,7 @@ if __name__ == "__main__":
                 generated_dir.rename(final_dataset_dir)
                 print(f"[SUCCESS] Final dataset available at: {final_dataset_dir}")
 
-    # python Models/src/image_preprocess.py # standard preprocessing
+    # python Models/yolo/src/image_preprocess.py # standard preprocessing
 
 
     

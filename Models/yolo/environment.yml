@@ -33,6 +33,7 @@ dependencies:
       # Optimization & Config
       - optuna
       - pyyaml
+      - sahi
 
       # Utilities
       - tqdm
