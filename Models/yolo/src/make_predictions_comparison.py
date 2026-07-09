@@ -437,7 +437,7 @@ makeChart(
 
 def main():
 
-    image = Path("Models/images/raw/levle1_271.jpg")
+    image = Path("Models/yolo/images/raw/levle1_271.jpg")
     run_dirs = run_prediction(image)
     results = collect_results(run_dirs)
 

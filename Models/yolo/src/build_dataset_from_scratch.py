@@ -9,25 +9,26 @@ Transforms raw acne images and JSON annotations into a YOLO formated dataset.
 5. Generates the required 'data.yaml' configuration file for YOLO training.
 
 PREREQUISITES:
-Place these components inside Models/data/ folder:
+Place these components inside Models/yolo/data/ folder:
 1. JSON annotation file (Download from GitHub repository)
    -> URL: https://github.com/AIpourlapeau/acne04v2
-   -> Put into: Models/data/Acne04-v2_annotations.json
+   -> Put into: Models/yolo/data/Acne04-v2_annotations.json
 2. Raw images directory (Download ZIP Archive from Kaggle)
    -> URL: https://www.kaggle.com/datasets/karmagames/acne04-v2
    -> Download the zip file from Kaggle and extract its contents directly into 
-      'Models/data/' directory. The archive natively contains the nested structure 
+      'Models/yolo/data/' directory. The archive natively contains the nested structure 
       'archive/img_data/img_data/'.
 
 The whole structure should look like that:
 Models/
-└── data/
-    ├── Acne04-v2_annotations.json
-    └── archive/
-        └── img_data/
+└── yolo/
+    └── data/
+        ├── Acne04-v2_annotations.json
+        └── archive/
             └── img_data/
-                ├── levle0_0.jpg
-                ├── levle1_1.jpg ...
+                └── img_data/
+                    ├── levle0_0.jpg
+                    ├── levle1_1.jpg ...
 
 """
 

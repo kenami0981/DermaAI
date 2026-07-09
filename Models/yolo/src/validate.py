@@ -15,10 +15,10 @@ What it does:
 
 Usage:
 
-* Default (Test split): python Models/src/validate.py
-* Specific Model: python Models/src/validate.py --model path/to/model.pt
-* Custom Split: python Models/src/validate.py --split val
-* Hardware Override: python Models/src/validate.py --device cpu
+* Default (Test split): python Models/yolo/src/validate.py
+* Specific Model: python Models/yolo/src/validate.py --model path/to/model.pt
+* Custom Split: python Models/yolo/src/validate.py --split val
+* Hardware Override: python Models/yolo/src/validate.py --device cpu
 
 Output:
 

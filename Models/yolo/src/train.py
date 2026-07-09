@@ -18,7 +18,7 @@ Usage:
 
 1. Ensure dataset_final and data.yaml are ready. Use the dataset merge pipeline if needed.
 2. (Optional) Place acne_hparam_search_{CURRENT_VERSION}_best.yaml in HPARAM_SEARCH_RESULT to use Optuna results.
-3. Run: python Models/src/train.py
+3. Run: python Models/yolo/src/train.py
 
 Output:
 

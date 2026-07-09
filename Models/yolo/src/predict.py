@@ -19,19 +19,19 @@ FUNCTIONALITY:
 6. Export structured results for each image.
 
 OUTPUT STRUCTURE:
-Results are saved in: Models/runs/predict/predict_[MODEL]_[TIMESTAMP]/
+Results are saved in: Models/yolo/runs/predict/predict_[MODEL]_[TIMESTAMP]/
 └── img_[IMG_NAME]/
     ├── image_clean.jpg     <-- Preprocessed input image with bounding boxes (no labels)
     ├── image0.jpg          <-- Annotated image (bounding boxes, with confidence)
     └── results.json        <-- Diagnostic report (score, time, coordinates, confidence)
 
 USAGE:
-    python Models/src/predict.py                          <-- Runs inference on all images in IMAGES_DIR
-    python Models/src/predict.py --image file.jpg         <-- Runs inference on a specific file
-    python Models/src/predict.py --no_preprocess          <-- Disables image detail enhancement
-    python Models/src/predict.py --tta                    <-- Enables Test-Time Augmentation
-    python Models/src/predict.py --sahi                   <-- Enables SAHI sliced inference
-    python Models/src/predict.py --tta --sahi             <-- Runs TTA + SAHI ensemble inference
+    python Models/yolo/src/predict.py                          <-- Runs inference on all images in IMAGES_DIR
+    python Models/yolo/src/predict.py --image file.jpg         <-- Runs inference on a specific file
+    python Models/yolo/src/predict.py --no_preprocess          <-- Disables image detail enhancement
+    python Models/yolo/src/predict.py --tta                    <-- Enables Test-Time Augmentation
+    python Models/yolo/src/predict.py --sahi                   <-- Enables SAHI sliced inference
+    python Models/yolo/src/predict.py --tta --sahi             <-- Runs TTA + SAHI ensemble inference
 """
 
 import time
