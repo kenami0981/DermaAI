@@ -220,3 +220,32 @@ if __name__ == "__main__":
     except Exception as e:
         print("\n[CRITICAL ERROR - DEBUG INFO]:")
         traceback.print_exc()
+
+
+
+"""
+Comparative Validation Report - Object Detection Pipelines
+
+Evaluation summary of three detection approaches:
+- Pure OpenCV (Traditional Computer Vision)
+- Pure YOLO (Deep Learning Model)
+- Ensemble Proximity Engine (YOLO + OpenCV validation)
+
+Evaluation Configuration:
+- Evaluation dataset:
+  DermaAI\Models\yolo\data\dataset_final_preprocessed\valid
+- YOLO confidence threshold: CONF_THRESHOLD = 0.2
+- IoU matching threshold: 0.3
+- Total evaluated images: 243
+
+Performance Matrix:
+
+| Pipeline Model                  | Precision | Recall | F1-Score | TP   | FP    | FN  |
+|---------------------------------|-----------|--------|----------|------|-------|-----|
+| Pure OpenCV (Traditional CV)    | 0.0287    | 0.2539 | 0.0515   |1695  |57442  |4982 |
+| Pure YOLO (Deep Learning)       | 0.5242    | 0.5798 | 0.5506   |3871  |3514   |2806 |
+| Ensemble Proximity Engine       | 0.4651    | 0.6155 | 0.5299   |4110  |4726   |2567 |
+
+My notes: The ensemble method trades some precision for higher recall.
+
+"""
