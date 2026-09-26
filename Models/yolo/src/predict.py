@@ -42,6 +42,7 @@ import cv2
 import shutil
 import sys
 import torch
+import logging
 
 from tqdm import tqdm
 from ultralytics import YOLO
@@ -50,6 +51,7 @@ from datetime import datetime
 
 from ultralytics.engine.results import Results
 from ultralytics.engine.results import Boxes
+from ultralytics import settings
 
 from torchvision.ops import nms
 
@@ -65,18 +67,28 @@ if str(ROOT_DIR) not in sys.path:
 from image_preprocess import enhance_details
 from config import BEST_MODEL, IMAGES_DIR, RUNS_DIR, CONF_THRESHOLD, IMG_SIZE
 
+logging.getLogger("ultralytics").setLevel(logging.ERROR)
+logging.getLogger("sahi").setLevel(logging.ERROR)
+
+
 def load_model():
     """
     Load trained production model.
     Stops execution if weights are missing.
     """
-
     if not BEST_MODEL.exists():
         raise FileNotFoundError("Model not found. Train first")
 
-    return YOLO(str(BEST_MODEL))
+    model = YOLO(str(BEST_MODEL))
+    model.overrides["verbose"] = False
+
+    return model
+
 
 def load_sahi_model():
+    """
+    Load model wrapped for SAHI sliced inference execution.
+    """
     model = AutoDetectionModel.from_pretrained(
         model_type="ultralytics",
         model_path=str(BEST_MODEL),
@@ -86,54 +98,88 @@ def load_sahi_model():
     model.names = model.model.names
     return model
 
-def calculate_score(results):
+def calculate_score(results, face_area=None, max_count=100):
     """
-    Convert detections into a normalized acne severity score.
+    Calculate the Normalized Acne Severity Index (NASI).
 
-    Score is based on:
-    - detection confidence
-    - lesion size
-    - number of detected lesions
+    NASI is a normalized acne severity metric in the range [0, 1].
+    Instead of relying only on the number of detected lesions, it combines
+    four complementary characteristics extracted from YOLO detections:
+
+        1. Lesion count.
+        2. Average relative lesion size.
+        3. Percentage of the face covered by lesions.
+        4. Mean detector confidence.
+
+    Parameters
+    ----------
+    results : list[Results]
+        Ultralytics YOLO prediction results.
+
+    face_area : float, optional
+        Face area expressed in pixels².
+        If no face detector is available, the entire image area is used
+        as a temporary approximation.
+
+    max_count : int
+        Lesion count corresponding to the maximum count score.
+        Used only for logarithmic normalization.
     """
-
+    # No inference results available.
     if not results or results[0].boxes is None:
         return 0.0
 
-    r = results[0]
+    boxes = results[0].boxes
 
-    if len(r.boxes) == 0:
+    # No acne lesions detected.
+    if len(boxes) == 0:
         return 0.0
 
-    # Original image dimensions
-    img_h, img_w = r.boxes.orig_shape
-    image_area = img_h * img_w
+    if face_area is None:
+        h, w = boxes.orig_shape
+        face_area = h * w
 
-    score = 0.0
+    n = len(boxes)
 
-    for box in r.boxes:
+    confidences = []
+    areas = []
 
-        # Detection confidence
+    for box in boxes:
         conf = float(box.conf[0])
-
-        # Bounding box coordinates
         x1, y1, x2, y2 = box.xyxy[0]
+        area = float((x2 - x1) * (y2 - y1))
 
-        # Relative lesion size
-        box_area = (x2 - x1) * (y2 - y1)
-        area_ratio = box_area / image_area
+        confidences.append(conf)
+        areas.append(area / face_area)
 
-        # Larger + more confident lesions increase severity
-        score += conf * (1 + area_ratio)
+    confidences = np.asarray(confidences)
+    areas = np.asarray(areas)
 
-    # Penalize excessive lesion counts
-    num_lesions = len(r.boxes)
-    score = score / (1 + num_lesions / 50)
+    # Component 1 - Lesion count (Logarithmic normalization)
+    count_score = np.log1p(n) / np.log1p(max_count)
 
-    # Normalize to 0–1 range
-    score = score / 5.0
-    score = np.clip(score, 0, 1)
+    # Component 2 - Average lesion size
+    size_score = np.mean(areas ** 0.6)
 
-    return round(float(score), 3)
+    # Component 3 - Lesion coverage (density)
+    density_score = np.clip(
+        areas.sum() / 0.12,
+        0,
+        1
+    )
+
+    # Component 4 - Detector confidence
+    confidence_score = np.mean(np.sqrt(confidences))
+
+    # Final NASI score combination
+    nasi = (
+        0.45 * count_score +
+        0.20 * size_score +
+        0.25 * density_score +
+        0.10 * confidence_score
+    )
+
+    return round(float(np.clip(nasi, 0, 1)), 3)
 
 
 def extract_detections(results, model):
@@ -225,7 +271,10 @@ def adjust_img_size(size, stride=32):
     return int(np.ceil(size / stride) * stride)
 
 def run_sahi(image, model, tta=True):
-    imgs = [image, cv2.flip(image,1)] if tta else [image]
+    """
+    Execute sliced prediction using SAHI.
+    """
+    imgs = [image, cv2.flip(image, 1)] if tta else [image]
 
     predictions = []
 
@@ -233,13 +282,13 @@ def run_sahi(image, model, tta=True):
         result = get_sliced_prediction(
             img,
             model,
-            slice_height=800,
-            slice_width=800,
-            overlap_height_ratio=0.25,
-            overlap_width_ratio=0.25,
-            postprocess_type="NMS", # aggressive duplicate filter
+            slice_height=1280,
+            slice_width=1280,
+            overlap_height_ratio=0.15,
+            overlap_width_ratio=0.15,
+            postprocess_type="NMS",
             postprocess_match_metric="IOU",
-            postprocess_match_threshold=0.25 # lower threshold -> tighter grouping -> less FP
+            postprocess_match_threshold=0.25
         )
 
         predictions.extend(result.object_prediction_list)
@@ -355,8 +404,6 @@ def run_inference(image_path, model, session_dir, preprocess=True, tta=True, sah
         global_boxes = results[0].boxes.xyxy
         global_scores = results[0].boxes.conf
         
-        # iou_threshold=0.3 means if boxes overlap more than 30% (or one contains another), 
-        # it keeps only the higher confidence one
         keep_indices = nms(global_boxes, global_scores, iou_threshold=0.3)
         results[0].boxes.data = results[0].boxes.data[keep_indices]
 
