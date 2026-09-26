@@ -2,6 +2,7 @@ import subprocess
 import json
 import statistics
 import base64
+import shutil
 
 from pathlib import Path
 from datetime import datetime
@@ -45,17 +46,218 @@ def collect_results(run_dirs):
 
         data.append({
             "name": run.name,
-            "image": img_dir / "image_clean.jpg",
+            "image": (img_dir / "image_clean.jpg").resolve(),
             "json": result
         })
 
     return data
 
 
-def image_to_base64(path):
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+def make_md(results):
 
+    output_dir = ROOT / "notebooks" / "predictions_comparison"
+
+    # clean previous report
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+
+    output_dir.mkdir(parents=True)
+
+
+    order = {
+        "standard": 0,
+        "tta_sahi": 1,
+        "tta": 2,
+        "sahi": 3
+    }
+
+
+    def get_type(name):
+        if "tta_sahi" in name:
+            return "tta_sahi"
+        if "standard" in name:
+            return "standard"
+        if "_tta_" in name:
+            return "tta"
+        return "sahi"
+
+
+    results = sorted(
+        results,
+        key=lambda x: order[get_type(x["name"])]
+    )
+
+
+    rows = []
+    images = []
+
+    names = []
+    scores = []
+    times = []
+    counts = []
+    confs = []
+
+
+    for r in results:
+
+        j = r["json"]
+        detections = j["detections"]
+
+        confidence = [
+            d["confidence"]
+            for d in detections
+        ]
+
+        bbox = [
+            d["bbox"][2] * d["bbox"][3]
+            for d in detections
+        ]
+
+
+        avg_conf = (
+            sum(confidence) / len(confidence)
+            if confidence else 0
+        )
+
+        max_conf = max(confidence) if confidence else 0
+        min_conf = min(confidence) if confidence else 0
+
+        avg_bbox = (
+            sum(bbox) / len(bbox)
+            if bbox else 0
+        )
+
+
+        if "tta_sahi" in r["name"]:
+            config = "TTA + SAHI"
+
+        elif "standard" in r["name"]:
+            config = "Standard"
+
+        elif "_tta_" in r["name"]:
+            config = "TTA"
+
+        else:
+            config = "SAHI"
+
+
+        names.append(config)
+        scores.append(j["score"])
+        times.append(j["time"])
+        counts.append(len(detections))
+        confs.append(round(avg_conf, 3))
+
+
+        rows.append(
+f"""| {config} | {j['score']} | {j['time']}s | {len(detections)} | {avg_conf:.3f} | {max_conf:.3f} | {min_conf:.3f} | {avg_bbox:.0f} |
+"""
+        )
+
+
+        # copy image into the SAME folder as markdown
+        image_name = f"{config.replace(' ', '_')}.jpg"
+
+        shutil.copy(
+            r["image"],
+            output_dir / image_name
+        )
+
+
+        images.append(
+f"""
+## {config}
+
+![{config} detection result]({image_name})
+
+"""
+        )
+
+
+    md = f"""
+# Acne Detection Comparison
+
+Generated:
+{datetime.now():%Y-%m-%d %H:%M}
+
+
+Comparison of YOLO inference configurations:
+
+- Standard
+- TTA (Test-Time Augmentation)
+- SAHI (Sliced Inference)
+- TTA + SAHI
+
+
+---
+
+# Images
+
+{"".join(images)}
+
+
+---
+
+# Metrics
+
+
+| Config | Score | Time | Detections | Avg conf | Max conf | Min conf | Avg bbox |
+|---|---:|---:|---:|---:|---:|---:|---:|
+{"".join(rows)}
+
+
+---
+
+# Charts
+
+
+## Number of detections
+
+| Config | Detections |
+|---|---:|
+""" + "\n".join(
+    f"| {n} | {c} |"
+    for n, c in zip(names, counts)
+) + """
+
+
+## Average confidence
+
+| Config | Avg confidence |
+|---|---:|
+""" + "\n".join(
+    f"| {n} | {c} |"
+    for n, c in zip(names, confs)
+) + """
+
+
+## Inference time
+
+| Config | Time [s] |
+|---|---:|
+""" + "\n".join(
+    f"| {n} | {t} |"
+    for n, t in zip(names, times)
+) + """
+
+
+## Acne score
+
+| Config | Score |
+|---|---:|
+""" + "\n".join(
+    f"| {n} | {s} |"
+    for n, s in zip(names, scores)
+)
+
+
+    path = output_dir / "predictions_comparison.md"
+
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(md)
+
+
+    print(f"Saved: {path}")
 
 def make_html(results):
 
@@ -441,7 +643,8 @@ def main():
     run_dirs = run_prediction(image)
     results = collect_results(run_dirs)
 
-    make_html(results)
+    # make_html(results)
+    make_md(results)
 
 if __name__ == "__main__":
     main()
