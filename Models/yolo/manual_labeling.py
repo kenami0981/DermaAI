@@ -18,8 +18,8 @@ import cv2
 import numpy as np
 import copy
 
-IMAGES_DIR = Path("Models/yolo/data/dataset_final_preprocessed_tiled_v2/train/images")
-LABELS_DIR = Path("Models/yolo/data/dataset_final_preprocessed_tiled_v2/train/labels")
+IMAGES_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_acne_only_preprocessed/train/images")
+LABELS_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_acne_only_preprocessed/train/labels")
 DEFAULT_CLASS_ID = 0
 
 class YOLOEditor:
@@ -84,7 +84,11 @@ class YOLOEditor:
                         y2 = int((yc + bh / 2) * self.orig_h)
                         self.boxes.append([cls, x1, y1, x2, y2])
         self.old_boxes = copy.deepcopy(self.boxes)
-        self.zoom = 1.0
+
+        image_area_w = self.canvas_w - self.info_w
+        self.zoom = min(image_area_w / self.orig_w, self.canvas_h / self.orig_h)
+
+        # self.zoom = 1.0
         self.offset_x = self.offset_y = 0
         return True
 
