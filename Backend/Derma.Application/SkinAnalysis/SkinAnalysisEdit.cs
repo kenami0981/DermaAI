@@ -26,8 +26,6 @@ namespace Derma.Application.SkinAnalysis
                 var skinAnalysis = await _context.SkinAnalysis.FindAsync(request.SkinAnalysis.Id);
                 skinAnalysis.imageUrl = request.SkinAnalysis.imageUrl;
                 skinAnalysis.notes = request.SkinAnalysis.notes ?? skinAnalysis.notes;
-                skinAnalysis.acneLevel = request.SkinAnalysis.acneLevel;
-                skinAnalysis.confidence = request.SkinAnalysis.confidence ?? skinAnalysis.confidence;
                 skinAnalysis.uploadDate = request.SkinAnalysis.uploadDate;
                 await _context.SaveChangesAsync();
 

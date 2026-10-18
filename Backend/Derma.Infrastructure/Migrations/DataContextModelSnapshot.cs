@@ -17,6 +17,38 @@ namespace Derma.Infrastructure.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
+            modelBuilder.Entity("Derma.Domain.AnalysisResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("acneCount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("acneScore")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("outputImageUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool?>("sahi_applied")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("skinAnalysisId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool?>("tta_applied")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("skinAnalysisId")
+                        .IsUnique();
+
+                    b.ToTable("AnalysisResult");
+                });
+
             modelBuilder.Entity("Derma.Domain.CosmeticUsage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -50,17 +82,41 @@ namespace Derma.Infrastructure.Migrations
                     b.ToTable("CosmeticUsage");
                 });
 
+            modelBuilder.Entity("Derma.Domain.Detection", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("AnalysisResultId")
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string>("bbox")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("className")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("confidence")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnalysisResultId");
+
+                    b.ToTable("Detection");
+                });
+
             modelBuilder.Entity("Derma.Domain.SkinAnalysis", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("acneLevel")
-                        .HasColumnType("TEXT");
-
-                    b.Property<double?>("confidence")
-                        .HasColumnType("REAL");
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("imageUrl")
                         .IsRequired()
@@ -78,6 +134,67 @@ namespace Derma.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SkinAnalysis");
+                });
+
+            modelBuilder.Entity("Derma.Domain.SkinAnalysisTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SkinAnalysisId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Tag")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Value")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SkinAnalysisId");
+
+                    b.ToTable("SkinAnalysisTag");
+                });
+
+            modelBuilder.Entity("Derma.Domain.AnalysisResult", b =>
+                {
+                    b.HasOne("Derma.Domain.SkinAnalysis", null)
+                        .WithOne("Result")
+                        .HasForeignKey("Derma.Domain.AnalysisResult", "skinAnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Derma.Domain.Detection", b =>
+                {
+                    b.HasOne("Derma.Domain.AnalysisResult", null)
+                        .WithMany("Detections")
+                        .HasForeignKey("AnalysisResultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Derma.Domain.SkinAnalysisTag", b =>
+                {
+                    b.HasOne("Derma.Domain.SkinAnalysis", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("SkinAnalysisId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Derma.Domain.AnalysisResult", b =>
+                {
+                    b.Navigation("Detections");
+                });
+
+            modelBuilder.Entity("Derma.Domain.SkinAnalysis", b =>
+                {
+                    b.Navigation("Result");
+
+                    b.Navigation("Tags");
                 });
 #pragma warning restore 612, 618
         }

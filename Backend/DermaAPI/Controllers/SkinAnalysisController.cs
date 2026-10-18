@@ -24,11 +24,27 @@ namespace Derma.API.Controllers
         {
             return await Mediator.Send(new SkinAnalysisDetails.Query { Id = id });
         }
+        [HttpPost]
+        public async Task<IActionResult> CreateSkinAnalysis(SkinAnalysis skinAnalysis)
+        {
+            await Mediator.Send(
+                new SkinAnalysisCreate.Command { SkinAnalysis = skinAnalysis });
+
+            return Ok();
+        }
         [HttpPut("{id}")]
         public async Task<IActionResult> EditSkinAnalysis(Guid id, SkinAnalysis skinAnalysis)
         {
             skinAnalysis.Id = id;
             await Mediator.Send(new SkinAnalysisEdit.Command { SkinAnalysis = skinAnalysis });
+            return Ok();
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteSkinAnalysis(Guid id)
+        {
+            await Mediator.Send(
+                new SkinAnalysisDelete.Command { Id = id });
+
             return Ok();
         }
     }

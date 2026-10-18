@@ -1,4 +1,5 @@
 ﻿using Derma.Application.CosmeticUsage;
+using Derma.Application.SkinAnalysis;
 using Derma.Domain;
 using Derma.Infrastructure;
 using MediatR;
@@ -25,10 +26,26 @@ namespace Derma.API.Controllers
         {
             return await Mediator.Send(new CosmeticUsageDetails.Query { Id = id });
         }
+        [HttpPost]
+        public async Task<IActionResult> CreateCosmeticUsage(CosmeticUsage cosmeticUsage)
+        {
+            await Mediator.Send(
+                new CosmeticUsageCreate.Command { CosmeticUsage = cosmeticUsage });
+
+            return Ok();
+        }
         [HttpPut("{id}")]
         public async Task<IActionResult> EditCosmeticUsage(Guid id, CosmeticUsage cosmeticUsage) {
             cosmeticUsage.Id = id;
             await Mediator.Send(new CosmeticUsageEdit.Command { CosmeticUsage = cosmeticUsage });
+            return Ok();
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCosmeticUsage(Guid id)
+        {
+            await Mediator.Send(
+                new CosmeticUsageDelete.Command { Id = id });
+
             return Ok();
         }
     }
