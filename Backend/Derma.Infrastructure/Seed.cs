@@ -43,8 +43,6 @@ namespace Derma.Infrastructure
             {
                 Id = Guid.NewGuid(),
                 userId = userId,
-                acneLevel = "low",
-                confidence = 100,
                 imageUrl = "/images",
                 notes = "note",
                 uploadDate = new DateTime(2025, 01, 10)

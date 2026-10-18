@@ -13,5 +13,7 @@ namespace Derma.Infrastructure
         public DataContext(DbContextOptions<DataContext> options) : base(options) { }
         public DbSet<CosmeticUsage> CosmeticUsage { get; set; }
         public DbSet<SkinAnalysis> SkinAnalysis { get; set; }
+        public DbSet<AnalysisResult> AnalysisResult { get; set; }
+        public DbSet<SkinAnalysisTag> SkinAnalysisTag { get; set; }
     }
 }

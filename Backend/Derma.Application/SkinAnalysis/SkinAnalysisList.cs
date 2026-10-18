@@ -24,7 +24,11 @@ namespace Derma.Application.SkinAnalysis
 
             public async Task<List<Derma.Domain.SkinAnalysis>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.SkinAnalysis.ToListAsync();
+
+                return await _context.SkinAnalysis
+        .Include(a => a.Tags)
+        .Include(a => a.Result)
+        .ToListAsync(cancellationToken);
             }
         }
     }
