@@ -10,7 +10,31 @@ WEIGHTS_DIR = ROOT / "weights"
 RUNS_DIR = ROOT / "runs"
 
 # VERSION CONTROL
-CURRENT_VERSION = "v3.2"
+# CURRENT_VERSION = "v3.2"
+
+# MODEL SELECTION
+MODEL_v3 = WEIGHTS_DIR / "best_v3.2.pt"
+MODEL_v4 = WEIGHTS_DIR / "best_v4.pt"
+
+AVAILABLE_MODELS = {
+    "v3.2": MODEL_v3, # Acne (class 0)
+    "v4": MODEL_v4, # 5 acne classes
+}
+
+
+CURRENT_VERSION = "v4"
+BEST_MODEL = AVAILABLE_MODELS[
+    "v4"
+]
+
+
+ACNE_CLASSES = [
+    "papule",
+    "pustule",
+    "closed_comedo",
+    "open_comedo",
+    "nodule",
+]
 
 # DYNAMIC CONFIGURATION 
 TRAINING_RUN_NAME = f"acne_train_production_{CURRENT_VERSION}"

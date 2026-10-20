@@ -17,6 +17,9 @@
 *.pyd
 *.bak
 *.tmp
+*.task
+
+test*.*
 
 ../.vscode
 ../.vscode/settings.json

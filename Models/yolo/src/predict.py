@@ -65,38 +65,80 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
 from image_preprocess import enhance_details
-from config import BEST_MODEL, IMAGES_DIR, RUNS_DIR, CONF_THRESHOLD, IMG_SIZE
+from config import (
+    BEST_MODEL,
+    MODEL_v3,
+    MODEL_v4,
+    AVAILABLE_MODELS,
+    IMAGES_DIR,
+    RUNS_DIR,
+    CONF_THRESHOLD,
+    IMG_SIZE,
+)
+NMS_IOU_THRESHOLD = 0.30
 
 logging.getLogger("ultralytics").setLevel(logging.ERROR)
 logging.getLogger("sahi").setLevel(logging.ERROR)
 
+# ACNE_CLASSES = [
+#     "papule",
+#     "pustule",
+#     "closed_comedo",
+#     "open_comedo",
+#     "nodule",
+# ]
 
-def load_model():
-    """
-    Load trained production model.
-    Stops execution if weights are missing.
-    """
-    if not BEST_MODEL.exists():
-        raise FileNotFoundError("Model not found. Train first")
+ALLOWED_CLASSES = {
+    "acne",
+    "papule",
+    "pustule",
+    "closed_comedo",
+    "open_comedo",
+    "nodule",
+}
 
-    model = YOLO(str(BEST_MODEL))
+def load_model(model_path=None):
+    """
+    Load the selected YOLO model.
+    Defaults to BEST_MODEL when no path is provided.
+    """
+    model_path = Path(model_path) if model_path else BEST_MODEL
+
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model not found: {model_path}")
+
+    model = YOLO(str(model_path))
     model.overrides["verbose"] = False
 
     return model
 
 
-def load_sahi_model():
+def load_sahi_model(model_path=None, confidence_threshold=None):
     """
-    Load model wrapped for SAHI sliced inference execution.
+    Load the selected model wrapped for SAHI inference.
     """
+    model_path = Path(model_path) if model_path else BEST_MODEL
+
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model not found: {model_path}")
+
+    threshold = (
+        CONF_THRESHOLD
+        if confidence_threshold is None
+        else confidence_threshold
+    )
+
     model = AutoDetectionModel.from_pretrained(
         model_type="ultralytics",
-        model_path=str(BEST_MODEL),
-        confidence_threshold=CONF_THRESHOLD,
+        model_path=str(model_path),
+        confidence_threshold=threshold,
         device="cpu"
     )
+
     model.names = model.model.names
+
     return model
+
 
 def calculate_score(results, face_area=None, max_count=100):
     """
@@ -131,7 +173,7 @@ def calculate_score(results, face_area=None, max_count=100):
 
     boxes = results[0].boxes
 
-    # No acne lesions detected.
+    # No lesions detected.
     if len(boxes) == 0:
         return 0.0
 
@@ -139,24 +181,42 @@ def calculate_score(results, face_area=None, max_count=100):
         h, w = boxes.orig_shape
         face_area = h * w
 
-    n = len(boxes)
+    class_weights = {
+        0: 1.0,   # ogólny trądzik (v3.2)
+        1: 0.7,   # closed_comedo (zaskórnik zamknięty - łagodny)
+        2: 1.5,   # nodule (guzek - ciężki, głęboki stan zapalny)
+        3: 0.8,   # open_comedo (zaskórnik otwarty)
+        4: 1.0,   # papule (grudka - umiarkowany stan zapalny)
+        5: 1.2,   # pustule (krosta - widoczny stan zapalny)
+    }
 
     confidences = []
     areas = []
+    weighted_counts = 0.0 
 
     for box in boxes:
         conf = float(box.conf[0])
+        cls_id = int(box.cls[0])
+        
+        weight = class_weights.get(cls_id, 0.0)
+        if weight == 0.0:
+            continue
+
         x1, y1, x2, y2 = box.xyxy[0]
         area = float((x2 - x1) * (y2 - y1))
 
         confidences.append(conf)
         areas.append(area / face_area)
+        weighted_counts += weight
+
+    if not confidences:
+        return 0.0
 
     confidences = np.asarray(confidences)
     areas = np.asarray(areas)
 
-    # Component 1 - Lesion count (Logarithmic normalization)
-    count_score = np.log1p(n) / np.log1p(max_count)
+    # Component 1 - Weighted Lesion count (Logarithmic normalization based on weighted sum)
+    count_score = np.log1p(weighted_counts) / np.log1p(max_count)
 
     # Component 2 - Average lesion size
     size_score = np.mean(areas ** 0.6)
@@ -211,9 +271,11 @@ def extract_detections(results, model):
     return detections
 
 
-def save_results(img_output_folder, image_path, final_img_path, score, detections, inference_time, tta=False, sahi=False):
+def save_results(img_output_folder, image_path, final_img_path, 
+                 score, detections, inference_time, model_name, tta=False, sahi=False):
     """Save inference results to JSON."""
     res_data = {
+        "model": str(model_name),
         "score": score,
         "time": round(inference_time, 3),
         "tta_applied": tta,
@@ -404,7 +466,7 @@ def run_inference(image_path, model, session_dir, preprocess=True, tta=True, sah
         global_boxes = results[0].boxes.xyxy
         global_scores = results[0].boxes.conf
         
-        keep_indices = nms(global_boxes, global_scores, iou_threshold=0.3)
+        keep_indices = nms(global_boxes, global_scores, iou_threshold=NMS_IOU_THRESHOLD)
         results[0].boxes.data = results[0].boxes.data[keep_indices]
 
     # Handle file moving and cleaning for standard/TTA modes where 'temp' exists
@@ -441,6 +503,8 @@ def run_inference(image_path, model, session_dir, preprocess=True, tta=True, sah
     score = calculate_score(results)
     end = time.time()
 
+    model_name_str = getattr(model, "model_path", "unknown_model")
+
     return save_results(
         img_output_folder,
         image_path,
@@ -448,6 +512,7 @@ def run_inference(image_path, model, session_dir, preprocess=True, tta=True, sah
         score,
         detections,
         end - start,
+        model_name=model_name_str,
         tta=tta,
         sahi=sahi
     )

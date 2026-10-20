@@ -1,26 +1,53 @@
-"""
-YOLO Bounding Box Editor
-A lightweight OpenCV tool to view, add, delete, and modify YOLO format bboxes.
-
-Controls:
-  LMB drag   - Add new bounding box
-  RMB click  - Delete target bounding box
-  MMB drag   - Pan / move image
-  Mouse Wheel- Zoom in / out
-  N / P      - Next / Previous image
-  S          - Save current changes
-  D          - Delete image and label file
-  ESC        - Exit (auto-saves before exit)
-"""
-
 from pathlib import Path
 import cv2
 import numpy as np
 import copy
 
-IMAGES_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_acne_only_preprocessed/train/images")
-LABELS_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_acne_only_preprocessed/train/labels")
+IMAGES_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/images")
+LABELS_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/labels")
 DEFAULT_CLASS_ID = 0
+
+COLOR_PALETTE = [
+    (0, 255, 0),     # Zielony
+    (255, 0, 0),     # Niebieski
+    (0, 0, 255),     # Czerwony
+    (0, 255, 255),   # Żółty
+    (255, 0, 255),   # Magenta / Różowy
+    (255, 255, 0),   # Cyjan
+    (128, 0, 128),   # Fioletowy
+    (0, 128, 128),   # Morski / Ciemnozielony
+    (128, 128, 0),   # Oliwkowy
+    (128, 0, 0)      # Bordowy
+]
+
+def get_class_color(cls_id):
+
+    return COLOR_PALETTE[cls_id % len(COLOR_PALETTE)]
+
+def load_class_names(img_dir):
+
+    current = Path(img_dir)
+    for _ in range(4):
+        yaml_path = current / "data.yaml"
+        if yaml_path.exists():
+            try:
+                import yaml
+                with open(yaml_path, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f)
+                    if "names" in data:
+                        names = data["names"]
+                        if isinstance(names, dict):
+                            return [names[k] for k in sorted(names.keys())]
+                        return names
+            except Exception:
+                pass
+        current = current.parent
+    
+    return [
+        'atrophic_scar', 'closed_comedo', 'hypertrophic_scar', 
+        'melasma', 'nevus', 'nodule', 'open_comedo', 
+        'other', 'papule', 'pustule'
+    ]
 
 class YOLOEditor:
     def __init__(self, img_dir, lbl_dir, file_list=None):
@@ -28,6 +55,8 @@ class YOLOEditor:
         self.lbl_dir = Path(lbl_dir)
         self.lbl_dir.mkdir(parents=True, exist_ok=True)
         valid_exts = {".jpg", ".jpeg", ".png", ".webp"}
+        
+        self.class_names = load_class_names(self.img_dir)
         
         # Load given list or scan all directory files
         if file_list:
@@ -52,14 +81,20 @@ class YOLOEditor:
         self.image = None
         self.orig_w = self.orig_h = 0
         self.boxes, self.old_boxes = [], []
-        self.zoom, self.min_zoom, self.max_zoom = 1.0, 0.1, 6.0
+        self.zoom, self.min_zoom, self.max_zoom = 1.0, 0.05, 10.0
         self.offset_x, self.offset_y = 0, 0
         self.drag_box, self.drag_pan = False, False
         self.start_x, self.start_y = 0, 0
         self.mouse_img_x, self.mouse_img_y = 0, 0
         self.pan_x, self.pan_y = 0, 0
         self.window = "YOLO BBox Editor"
-        self.canvas_w, self.canvas_h, self.info_w = 1600, 900, 350
+        #self.canvas_w, self.canvas_h, self.info_w = 1600, 900, 380 
+        self.canvas_w, self.canvas_h, self.info_w = 1920, 1080, 960 
+
+    def get_class_name(self, cls_id):
+        if 0 <= cls_id < len(self.class_names):
+            return self.class_names[cls_id]
+        return f"{cls_id}"
 
     def load_current_data(self):
         """Load active image and parse corresponding YOLO txt label."""
@@ -88,7 +123,6 @@ class YOLOEditor:
         image_area_w = self.canvas_w - self.info_w
         self.zoom = min(image_area_w / self.orig_w, self.canvas_h / self.orig_h)
 
-        # self.zoom = 1.0
         self.offset_x = self.offset_y = 0
         return True
 
@@ -176,21 +210,32 @@ class YOLOEditor:
                 print("Deleted box:", self.boxes.pop(remove_id))
 
     def draw_image(self):
-        """Render image viewport and right sidebar HUD."""
+        """Render image viewport and right sidebar HUD with color legend."""
         canvas = np.zeros((self.canvas_h, self.canvas_w, 3), dtype=np.uint8)
         image_area_w = self.canvas_w - self.info_w
         frame = cv2.resize(self.image, None, fx=self.zoom, fy=self.zoom, interpolation=cv2.INTER_NEAREST)
 
-        # Draw boxes
-        for _, x1, y1, x2, y2 in self.boxes:
+        min_dim = min(self.orig_w, self.orig_h)
+        line_thickness = max(1, int(round(min_dim * 0.0025 * self.zoom)))
+        font_scale = max(0.35, min(0.6, min_dim * 0.0006 * self.zoom))
+        font_thickness = 1
+
+        # Draw boxes and class labels with respective class colors
+        for cls, x1, y1, x2, y2 in self.boxes:
+            color = get_class_color(cls)
             sx1, sy1 = int(x1 * self.zoom), int(y1 * self.zoom)
             sx2, sy2 = int(x2 * self.zoom), int(y2 * self.zoom)
-            cv2.rectangle(frame, (sx1, sy1), (sx2, sy2), (0, 255, 0), 2)
+            cv2.rectangle(frame, (sx1, sy1), (sx2, sy2), color, line_thickness)
+            
+            # Display class name above the bounding box
+            label = str(cls)
+            cv2.putText(frame, label, (sx1, max(int(15 * self.zoom), sy1 - 4)), 
+                        cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, font_thickness, cv2.LINE_AA)
 
         if self.drag_box:
             x1, y1 = int(self.start_x * self.zoom), int(self.start_y * self.zoom)
             x2, y2 = int(self.mouse_img_x * self.zoom), int(self.mouse_img_y * self.zoom)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 255), line_thickness)
 
         # Crop frame to canvas viewport
         h, w = frame.shape[:2]
@@ -202,14 +247,53 @@ class YOLOEditor:
         if sx2 > sx1 and sy2 > sy1:
             canvas[dy1:dy1 + sy2 - sy1, dx1:dx1 + sx2 - sx1] = frame[sy1:sy2, sx1:sx2]
 
-        # Draw UI overlay panel
+        # Draw UI overlay panel background
         cv2.rectangle(canvas, (image_area_w, 0), (self.canvas_w, self.canvas_h), (0, 0, 0), -1)
+        
+        # Standard Info Texts
         texts = [
             f"Image {self.current_idx + 1}/{len(self.image_files)}",
             self.image_files[self.current_idx].name,
             "",
             f"Zoom: {self.zoom:.2f}",
-            "",
+            f"Boxes count: {len(self.boxes)}",
+            ""
+        ]
+
+        y = 30
+        for t in texts:
+            cv2.putText(canvas, t, (image_area_w + 20, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+            y += 24
+
+        # --- LEGEND SECTION ---
+        y = 200
+        cv2.putText(canvas, "LEGEND (Classes):", (image_area_w + 30, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (240, 240, 240), 2, cv2.LINE_AA)
+        y += 35
+
+        unique_classes = sorted(list(set(b[0] for b in self.boxes)))
+        if not unique_classes:
+            cv2.putText(canvas, "No classes on image", (image_area_w + 30, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (150, 150, 150), 1, cv2.LINE_AA)
+            y += 35
+        else:
+            for cls in unique_classes:
+                color = get_class_color(cls)
+                class_name = self.get_class_name(cls)
+                
+                # Draw color swatch box in the sidebar
+                swatch_x1 = image_area_w + 30
+                swatch_y1 = y - 16
+                swatch_x2 = swatch_x1 + 30
+                swatch_y2 = swatch_y1 + 22
+                cv2.rectangle(canvas, (swatch_x1, swatch_y1), (swatch_x2, swatch_y2), color, -1)
+                cv2.rectangle(canvas, (swatch_x1, swatch_y1), (swatch_x2, swatch_y2), (200, 200, 200), 1)
+                
+                # Class text next to swatch
+                cv2.putText(canvas, f"{cls}: {class_name}", (swatch_x2 + 15, y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+                y += 38
+
+        y += 15
+        # Controls section
+        controls = [
             "CONTROLS:",
             "LMB drag  - add bbox",
             "RMB click - delete bbox",
@@ -223,11 +307,12 @@ class YOLOEditor:
             "ESC - exit"
         ]
 
-        y = 40
-        for t in texts:
-            text_w = cv2.getTextSize(t, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 1)[0][0]
-            cv2.putText(canvas, t, (1600 - text_w - 30, y), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1, cv2.LINE_AA)
-            y += 32
+        for t in controls:
+            font_scale = 0.65 if t == "CONTROLS:" else 0.58
+            thickness = 2 if t == "CONTROLS:" else 1
+            color = (240, 240, 240) if t == "CONTROLS:" else (180, 180, 180)
+            cv2.putText(canvas, t, (image_area_w + 30, y), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
+            y += 30
 
         return canvas
 
@@ -291,39 +376,6 @@ class YOLOEditor:
         cv2.destroyAllWindows()
 
 
-
-
-
 if __name__ == "__main__":
-    
-    # Specific list of files to load
-    top_20_files = [
-        "levle3_102.txt",
-        "levle3_89_1.txt",
-        "levle3_89_2.txt",
-        "levle3_89_7.txt",
-        "levle2_8.txt",
-        "levle3_89_4.txt",
-        "levle1_83_6.txt",
-        "levle2_94_7.txt",
-        "levle3_104.txt",
-        "levle2_138_8.txt",
-        "levle3_101_1.txt",
-        "levle3_112_7.txt",
-        "levle1_178_4.txt",
-        "levle2_159_7.txt",
-        "levle3_117.txt",
-        "levle0_411_7.txt",
-        "levle2_121_3.txt",
-        "levle3_39.txt",
-        "levle2_158_7.txt",
-        "levle1_177_5.txt"
-    ]
-
-    # OPTION 1: Load all images from directory
     editor = YOLOEditor(IMAGES_DIR, LABELS_DIR)
-
-    # OPTION 2: Load specific file list
-    # editor = YOLOEditor(IMAGES_DIR, LABELS_DIR, file_list=top_20_files)
-
     editor.run()
