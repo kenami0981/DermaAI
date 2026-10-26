@@ -499,6 +499,8 @@ def run_inference(image_path, model, session_dir, preprocess=True, tta=True, sah
         clean_img_path = img_output_folder / "image_clean.jpg"
         cv2.imwrite(str(clean_img_path), annotated_img)
 
+        final_img_path = clean_img_path
+
     detections = extract_detections(results, model.model if sahi else model)
     score = calculate_score(results)
     end = time.time()
