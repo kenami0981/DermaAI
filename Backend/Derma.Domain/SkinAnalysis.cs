@@ -16,7 +16,6 @@ namespace Derma.Domain
         public Guid Id { get; set; }
         public Guid SkinAnalysisId { get; set; }
         public Tag Tag { get; set; }
-        public bool Value { get; set; }
     }
     public class SkinAnalysis
     {
