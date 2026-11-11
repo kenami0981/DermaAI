@@ -1,4 +1,5 @@
 ﻿using Derma.Infrastructure;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,13 @@ namespace Derma.Application.CosmeticUsage
         {
             public required Derma.Domain.CosmeticUsage CosmeticUsage { get; set; }
         }
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.CosmeticUsage).SetValidator(new CosmeticUsageValidator());
+            }
+        }
 
         public class Handler : IRequestHandler<Command, Guid>
         {
@@ -23,6 +31,7 @@ namespace Derma.Application.CosmeticUsage
             {
                 _context = context;
             }
+
 
             public async Task<Guid> Handle(Command request, CancellationToken cancellationToken)
             {

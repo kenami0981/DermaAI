@@ -1,6 +1,10 @@
 using Derma.Application.CosmeticUsage;
 using Derma.Application.SkinAnalysis;
 using Derma.Infrastructure;
+using Derma.Application.Core;
+using FluentValidation;
+using MediatR;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 
@@ -18,8 +22,6 @@ builder.Services.AddCors(opt =>
 });
 builder.Services.AddMediatR(cfg =>
 cfg.RegisterServicesFromAssembly(typeof(CosmeticUsageList.Handler).Assembly));
-builder.Services.AddMediatR(cfg =>
-cfg.RegisterServicesFromAssembly(typeof(SkinAnalysisList.Handler).Assembly));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -27,9 +29,23 @@ builder.Services.AddDbContext<DataContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddValidatorsFromAssemblyContaining<CosmeticUsageValidator>();
 
 var app = builder.Build();
-
+app.Use(async (ctx, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (ValidationException ex)
+    {
+        ctx.Response.StatusCode = 400;
+        await ctx.Response.WriteAsJsonAsync(
+            ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }));
+    }
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

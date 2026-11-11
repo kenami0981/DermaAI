@@ -26,7 +26,7 @@ namespace Derma.Application.CosmeticUsage
                 cosmeticUsage.frequency = request.CosmeticUsage.frequency ?? cosmeticUsage.frequency;
                 cosmeticUsage.notes = request.CosmeticUsage.notes ?? cosmeticUsage.notes;
                 cosmeticUsage.startDate = request.CosmeticUsage.startDate;
-                cosmeticUsage.endDate = request.CosmeticUsage.endDate ?? cosmeticUsage.endDate;
+                cosmeticUsage.endDate = request.CosmeticUsage.endDate;
                 cosmeticUsage.category = request.CosmeticUsage.category;
                 request.CosmeticUsage.userId = cosmeticUsage.userId;
                 await _context.SaveChangesAsync();

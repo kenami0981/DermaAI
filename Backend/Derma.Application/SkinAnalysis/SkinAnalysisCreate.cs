@@ -1,5 +1,6 @@
 ﻿
 using Derma.Infrastructure;
+using FluentValidation;
 using MediatR;
 using System;
 using System.Threading;
@@ -9,6 +10,13 @@ namespace Derma.Application.SkinAnalysis
 {
     public class SkinAnalysisCreate
     {
+        public class CommandValidator : AbstractValidator<Command>
+        {
+            public CommandValidator()
+            {
+                RuleFor(x => x.SkinAnalysis).SetValidator(new SkinAnalysisValidator());
+            }
+        }
         public class Command : IRequest<Unit>
         {
             public required Derma.Domain.SkinAnalysis SkinAnalysis { get; set; }
@@ -29,7 +37,8 @@ namespace Derma.Application.SkinAnalysis
             {
                 await _context.SkinAnalysis.AddAsync(
                     request.SkinAnalysis,
-                    cancellationToken);
+                    cancellationToken
+                    );
 
                 await _context.SaveChangesAsync(cancellationToken);
 

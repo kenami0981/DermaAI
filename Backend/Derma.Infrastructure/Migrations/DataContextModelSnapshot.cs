@@ -148,9 +148,6 @@ namespace Derma.Infrastructure.Migrations
                     b.Property<int>("Tag")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("Value")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SkinAnalysisId");

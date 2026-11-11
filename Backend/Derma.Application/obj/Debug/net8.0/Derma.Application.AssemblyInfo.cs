@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Derma.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+adc6bc31a7c4c915dfcce3672418bc962a9412b8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+caf2be7f88c363f955779173b1d8b6fcd2a18d95")]
 [assembly: System.Reflection.AssemblyProductAttribute("Derma.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Derma.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
