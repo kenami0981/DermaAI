@@ -22,3 +22,4 @@ C:\Users\HP\Desktop\Studia\DermaAI\Backend\Derma.Domain\obj\Debug\net8.0\Derma.D
 C:\Users\HP\Desktop\Studia\DermaAI\Backend\Derma.Domain\obj\Debug\net8.0\refint\Derma.Domain.dll
 C:\Users\HP\Desktop\Studia\DermaAI\Backend\Derma.Domain\obj\Debug\net8.0\Derma.Domain.pdb
 C:\Users\HP\Desktop\Studia\DermaAI\Backend\Derma.Domain\obj\Debug\net8.0\ref\Derma.Domain.dll
+C:\Users\HP\Desktop\Studia\DermaAI\Backend\Derma.Domain\obj\Debug\net8.0\Derma.Domain.csproj.AssemblyReference.cache

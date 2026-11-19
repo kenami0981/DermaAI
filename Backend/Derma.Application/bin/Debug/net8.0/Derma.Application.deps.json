@@ -11,7 +11,8 @@
           "Derma.Domain": "1.0.0",
           "Derma.Infrastructure": "1.0.0",
           "FluentValidation": "12.2.0",
-          "MediatR": "14.1.0"
+          "MediatR": "14.1.0",
+          "Microsoft.AspNetCore.Http.Abstractions": "2.3.14"
         },
         "runtime": {
           "Derma.Application.dll": {}
@@ -44,6 +45,60 @@
           "lib/netstandard2.0/MediatR.Contracts.dll": {
             "assemblyVersion": "2.0.1.0",
             "fileVersion": "2.0.1.0"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Cryptography.Internal/8.0.34": {
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Cryptography.Internal.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.3426.52311"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Cryptography.KeyDerivation/8.0.34": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Cryptography.Internal": "8.0.34"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Cryptography.KeyDerivation.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.3426.52311"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Abstractions/2.3.14": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Http.Features": "2.3.13",
+          "System.Text.Encodings.Web": "9.0.10"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Abstractions.dll": {
+            "assemblyVersion": "2.3.14.0",
+            "fileVersion": "2.3.14.26302"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Http.Features/2.3.13": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "9.0.10"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.AspNetCore.Http.Features.dll": {
+            "assemblyVersion": "2.3.13.0",
+            "fileVersion": "2.3.13.26246"
+          }
+        }
+      },
+      "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.34": {
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Relational": "9.0.10",
+          "Microsoft.Extensions.Identity.Stores": "8.0.34"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll": {
+            "assemblyVersion": "8.0.34.0",
+            "fileVersion": "8.0.3426.52311"
           }
         }
       },
@@ -190,6 +245,32 @@
           "lib/net8.0/Microsoft.Extensions.DependencyModel.dll": {
             "assemblyVersion": "9.0.0.10",
             "fileVersion": "9.0.1025.47515"
+          }
+        }
+      },
+      "Microsoft.Extensions.Identity.Core/8.0.34": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Cryptography.KeyDerivation": "8.0.34",
+          "Microsoft.Extensions.Logging": "9.0.10",
+          "Microsoft.Extensions.Options": "9.0.10"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Identity.Core.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.3426.52311"
+          }
+        }
+      },
+      "Microsoft.Extensions.Identity.Stores/8.0.34": {
+        "dependencies": {
+          "Microsoft.Extensions.Caching.Abstractions": "9.0.10",
+          "Microsoft.Extensions.Identity.Core": "8.0.34",
+          "Microsoft.Extensions.Logging": "9.0.10"
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.Extensions.Identity.Stores.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.3426.52311"
           }
         }
       },
@@ -469,6 +550,9 @@
         }
       },
       "Derma.Domain/1.0.0": {
+        "dependencies": {
+          "Microsoft.Extensions.Identity.Stores": "8.0.34"
+        },
         "runtime": {
           "Derma.Domain.dll": {
             "assemblyVersion": "1.0.0.0",
@@ -479,6 +563,7 @@
       "Derma.Infrastructure/1.0.0": {
         "dependencies": {
           "Derma.Domain": "1.0.0",
+          "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "8.0.34",
           "Microsoft.EntityFrameworkCore.Sqlite": "9.0.10",
           "Microsoft.EntityFrameworkCore.Sqlite.Core": "9.0.10"
         },
@@ -517,6 +602,41 @@
       "sha512": "sha512-FYv95bNT4UwcNA+G/J1oX5OpRiSUxteXaUt2BJbRSdRNiIUNbggJF69wy6mnk2wYToaanpdXZdCwVylt96MpwQ==",
       "path": "mediatr.contracts/2.0.1",
       "hashPath": "mediatr.contracts.2.0.1.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Cryptography.Internal/8.0.34": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-95zvw0jLSY9SkrNZ4jAjpHI3Hsd26w4AAt3/tlOwRNop4KmLd12wvCCAIHoeMLZx4rzze1mpQl45d6PNX05+uw==",
+      "path": "microsoft.aspnetcore.cryptography.internal/8.0.34",
+      "hashPath": "microsoft.aspnetcore.cryptography.internal.8.0.34.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Cryptography.KeyDerivation/8.0.34": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-I9yYOA/Rd6iMhXiUjv9w5PkB4VKFRBFbOmqTGmRl4hHrefPVGXR8vI7FNTrA0T0tvRQnGsLAV2HzWO+9bvJWEw==",
+      "path": "microsoft.aspnetcore.cryptography.keyderivation/8.0.34",
+      "hashPath": "microsoft.aspnetcore.cryptography.keyderivation.8.0.34.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Http.Abstractions/2.3.14": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-QZAX9SnL88A/ea0XV/GpyH93gwdP81n8XRq/WxpL119lf951LPCKCvejzLUV1cFabFW3AlhXSxZ8jY9DGBsqyA==",
+      "path": "microsoft.aspnetcore.http.abstractions/2.3.14",
+      "hashPath": "microsoft.aspnetcore.http.abstractions.2.3.14.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Http.Features/2.3.13": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-B4qCTzbJlz/pLUThK/bkh+ENcw/54Ugd+OiE1H2t9hI9vdjzz1ZKsHx/EWDi1wDx2eaXKltw9V41DTAEzSm7IA==",
+      "path": "microsoft.aspnetcore.http.features/2.3.13",
+      "hashPath": "microsoft.aspnetcore.http.features.2.3.13.nupkg.sha512"
+    },
+    "Microsoft.AspNetCore.Identity.EntityFrameworkCore/8.0.34": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-i4tAvEFq1/NkR9FBDuxJwB2ArWQ5tGx/KtS9rtiAES8/B54iLrP/os9PereHG2LuV6yH0LrQibUFzBTqghfz1Q==",
+      "path": "microsoft.aspnetcore.identity.entityframeworkcore/8.0.34",
+      "hashPath": "microsoft.aspnetcore.identity.entityframeworkcore.8.0.34.nupkg.sha512"
     },
     "Microsoft.Data.Sqlite.Core/9.0.10": {
       "type": "package",
@@ -608,6 +728,20 @@
       "sha512": "sha512-qCIWxEPt6Y9Z/Vx2R6JsfX7pwxIHC2GYlkcFbTox3MpsiNexyLkvPFTNsfmAaKpjTZ6FhNmvY3BdrwLX4+X0cQ==",
       "path": "microsoft.extensions.dependencymodel/9.0.10",
       "hashPath": "microsoft.extensions.dependencymodel.9.0.10.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Identity.Core/8.0.34": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-99dfXW13JA6HI5ZLFJ1omT8G+91gfr3fKhUMSzQMG9y2YHSZt7lgYQ0T8M6yJzeonDZ4c/W5ntBf66zIu+UR/A==",
+      "path": "microsoft.extensions.identity.core/8.0.34",
+      "hashPath": "microsoft.extensions.identity.core.8.0.34.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Identity.Stores/8.0.34": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-573tumJRS+iGO+DHAYp+LXeNq4cIyn4bNEkxJC3n5wkXAnn6XPxcvs9xjWot/0scbKBubAPyawbSlLFeWLRkbg==",
+      "path": "microsoft.extensions.identity.stores/8.0.34",
+      "hashPath": "microsoft.extensions.identity.stores.8.0.34.nupkg.sha512"
     },
     "Microsoft.Extensions.Logging/9.0.10": {
       "type": "package",
