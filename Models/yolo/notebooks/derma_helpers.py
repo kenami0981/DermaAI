@@ -20,10 +20,36 @@ V4_CLASS_MAP = {1: 1, 5: 2, 6: 3, 8: 4, 9: 5}
 V4_CLASS_NAMES = {"closed_comedo": 1, "nodule": 2, "open_comedo": 3, "papule": 4, "pustule": 5}
 
 
-def image_info(path, images_dir):
-    parts = path.relative_to(images_dir).parts
-    date = parts[0] if len(parts) > 1 else "Unknown"
-    side = parts[1].lower() if len(parts) > 2 else "Unknown"
+# def image_info(path, images_dir):
+#     parts = path.relative_to(images_dir).parts
+#     date = parts[0] if len(parts) > 1 else "Unknown"
+#     side = parts[1].lower() if len(parts) > 2 else "Unknown"
+#     return date, side
+
+
+def image_info(path, base_dir=None):
+    path_obj = Path(path)
+    
+    if base_dir is not None:
+        try:
+            parts = path_obj.relative_to(base_dir).parts
+            date = parts[0] if len(parts) > 0 else "Unknown"
+            side = parts[1].lower() if len(parts) > 1 else "Unknown"
+            return date, side
+        except ValueError:
+            pass
+            
+    parts = path_obj.parts
+    date = "Unknown"
+    side = "front"
+    
+    for i, part in enumerate(parts):
+        if len(part) == 10 and part[4] == '-' and part[7] == '-':
+            date = part
+            if i + 1 < len(parts):
+                side = parts[i + 1].lower()
+            break
+            
     return date, side
 
 def card(label, value, card_style, border_style, text_style, muted_style):

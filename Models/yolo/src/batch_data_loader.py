@@ -8,7 +8,7 @@ import uuid
 DB_PATH = Path(r"D:\studia\DermaAI\Backend\DermaAPI\derma.db")
 
 # Root directory containing dated photo folders
-PHOTOS_ROOT = Path(r"D:\studia\DermaAI\Models\yolo\images\my\dermaai_v2\dated_photos")
+PHOTOS_ROOT = Path(r"D:\studia\DermaAI\Models\yolo\images\my\dermaai_v2\dated_fotoes")
 
 # Path to the external JSON file containing structured lifestyle data
 JSON_DATA_PATH = Path(r"D:\studia\DermaAI\Models\yolo\images\my\dermaai_v2\lifestyle_data.json")

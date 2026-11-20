@@ -82,9 +82,6 @@ def run_pipeline():
                 logger.error(f"Image file does not exist on disk: {image_path}")
                 continue
 
-            # ==========================================
-            # 2. RUN REAL PREDICT.PY
-            # ==========================================
             logger.info("Running YOLO prediction via function from predict.py...")
             
             # You can control tta and sahi flags here (e.g., tta=True, sahi=False)
@@ -125,9 +122,7 @@ def run_pipeline():
             logger.info(f"[RESULT] Score: {acne_score} | Detections count: {acne_count} | TTA: {tta_applied} | SAHI: {sahi_applied}")
             logger.info(f"[OUTPUT] Absolute path of output image: {output_image_abs}")
 
-            # ==========================================
-            # 3. CHECK AND CLEAR OLD RESULTS IN THE DATABASE
-            # ==========================================
+
             cursor.execute("SELECT Id FROM AnalysisResult WHERE SkinAnalysisId = ?", (analysis_id,))
             existing_result = cursor.fetchone()
 
@@ -139,9 +134,7 @@ def run_pipeline():
                 result_id = str(uuid.uuid4()).upper()
                 logger.info(f"Creating new AnalysisResult ID: {result_id}")
 
-            # ==========================================
-            # 4. SAVE TO AnalysisResult (including tta and sahi)
-            # ==========================================
+
             ar_data = {}
             if 'id' in ar_cols: ar_data[ar_cols['id']] = result_id
             if 'skinanalysisid' in ar_cols: ar_data[ar_cols['skinanalysisid']] = analysis_id
@@ -170,9 +163,6 @@ def run_pipeline():
                 VALUES ({ar_placeholders})
             """, ar_values)
 
-            # ==========================================
-            # 5. SAVE TO Detection
-            # ==========================================
             for det in detections_list:
                 det_id = str(uuid.uuid4()).upper()
                 bbox_str = json.dumps(det["bbox"])
@@ -194,9 +184,6 @@ def run_pipeline():
                     VALUES ({det_placeholders})
                 """, det_values)
 
-            # ==========================================
-            # 6. UPDATE SkinAnalysis STATUS TO 1
-            # ==========================================
             cursor.execute("""
                 UPDATE SkinAnalysis 
                 SET Status = 1 
