@@ -3,8 +3,10 @@ import cv2
 import numpy as np
 import copy
 
-IMAGES_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/images")
-LABELS_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/labels")
+# IMAGES_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/images")
+# LABELS_DIR = Path("Models/yolo/data/ACNESCU.v1i.yolo26_bbox_preprocessed/train/labels")
+IMAGES_DIR = Path("Models/yolo/data/final_dataset_preprocessed/train/images")
+LABELS_DIR = Path("Models/yolo/data/final_dataset_preprocessed/train/labels")
 DEFAULT_CLASS_ID = 0
 
 COLOR_PALETTE = [
@@ -353,12 +355,16 @@ class YOLOEditor:
             key = cv2.waitKey(30) & 0xFF
 
             if key in [ord("n"), ord("N")]:
-                self.save_current_data()
+                if self.has_changes():
+                    print("[INFO] Changes not saved! Press 'S' to save before changing image.")
+                
                 self.current_idx = (self.current_idx + 1) % len(self.image_files)
                 self.load_current_data()
 
             elif key in [ord("p"), ord("P")]:
-                self.save_current_data()
+                if self.has_changes():
+                    print("[INFO] Changes not saved! Press 'S' to save before changing image.")
+
                 self.current_idx = (self.current_idx - 1) % len(self.image_files)
                 self.load_current_data()
 
@@ -369,13 +375,26 @@ class YOLOEditor:
                 if not self.delete_current_image():
                     break
 
-            elif key == 27:
-                self.save_current_data()
+            elif key == 27:  # ESC
                 break
 
         cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    editor = YOLOEditor(IMAGES_DIR, LABELS_DIR)
+
+    # NORMAL USAGE: Run the editor for a specific dataset folder
+    # editor = YOLOEditor(IMAGES_DIR, LABELS_DIR)
+    # editor.run()
+
+    # CUSTOM FILES USAGE: Run the editor for a specific list of images
+    custom_files = [
+        IMAGES_DIR / "levle2_130.jpg",
+    ]
+    
+    editor = YOLOEditor(
+        img_dir=IMAGES_DIR, 
+        lbl_dir=LABELS_DIR, 
+        file_list=custom_files
+    )
     editor.run()

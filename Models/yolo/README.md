@@ -130,7 +130,7 @@ Follow these steps in order to build, train, and use the acne detection model.
 
 ### 5.1 For versions v3.2:
 
-#### 5.1.1 Data Preparation (`build_dataset_from_scratch.py`)
+#### 5.1.1 Data Preparation (`acne04_dataset_pipeline.py`)
 
 **Command:** `python Models/yolo/src/yolo_dataset_preparation_pipeline.py`
 
