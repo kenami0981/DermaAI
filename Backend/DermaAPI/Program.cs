@@ -1,8 +1,19 @@
 using Derma.Application.CosmeticUsage;
 using Derma.Application.SkinAnalysis;
 using Derma.Infrastructure;
+using Derma.Application.Core;
+using FluentValidation;
+using MediatR;
+using Derma.API.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Derma.Domain;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,18 +29,62 @@ builder.Services.AddCors(opt =>
 });
 builder.Services.AddMediatR(cfg =>
 cfg.RegisterServicesFromAssembly(typeof(CosmeticUsageList.Handler).Assembly));
-builder.Services.AddMediatR(cfg =>
-cfg.RegisterServicesFromAssembly(typeof(SkinAnalysisList.Handler).Assembly));
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.CustomSchemaIds(type => type.FullName!.Replace("+", "."));
+});
 builder.Services.AddDbContext<DataContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddValidatorsFromAssemblyContaining<CosmeticUsageValidator>();
+//Dodawanie IdentytyCore (authentication)
+builder.Services.AddIdentityCore<AppUser>(opt =>
+{
+    opt.User.RequireUniqueEmail = true;
+    opt.Password.RequiredLength = 8;
+    opt.Password.RequireNonAlphanumeric = false;
+})
+.AddRoles<IdentityRole<Guid>>()
+.AddEntityFrameworkStores<DataContext>();
+//Dodawanie JWT
+builder.Services.AddAuthentication(cfg => {
+    cfg.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    cfg.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    cfg.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(x => {
+    x.RequireHttpsMetadata = false;
+    x.SaveToken = false;
+    x.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8
+            .GetBytes(builder.Configuration["ApplicationSettings:JWT_Secret"]!)
+        ),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+}).AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null); ;
 var app = builder.Build();
-
+app.Use(async (ctx, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (ValidationException ex)
+    {
+        ctx.Response.StatusCode = 400;
+        await ctx.Response.WriteAsJsonAsync(
+            ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }));
+    }
+});
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -38,7 +93,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
