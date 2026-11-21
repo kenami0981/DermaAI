@@ -1,6 +1,7 @@
 ﻿
 using Derma.Infrastructure;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +10,14 @@ namespace Derma.Application.SkinAnalysis
 {
     public class SkinAnalysisDelete
     {
-        public class Command : IRequest<Unit>
+        public class Command : IRequest<bool>
         {
             public Guid Id { get; set; }
+            public Guid UserId { get; set; }
+            public bool IsAdmin { get; set; }
         }
 
-        public class Handler : IRequestHandler<Command, Unit>
+        public class Handler : IRequestHandler<Command, bool>
         {
             private readonly DataContext _context;
 
@@ -23,23 +26,22 @@ namespace Derma.Application.SkinAnalysis
                 _context = context;
             }
 
-            public async Task<Unit> Handle(
+            public async Task<bool> Handle(
                 Command request,
                 CancellationToken cancellationToken)
             {
-                var skinAnalysis = await _context.SkinAnalysis
-                    .FindAsync(
-                        new object[] { request.Id },
-                        cancellationToken);
+                var query = _context.SkinAnalysis.Where(a => a.Id == request.Id);
+                if (!request.IsAdmin)
+                    query = query.Where(a => a.userId == request.UserId);
+                var skinAnalysis = await query.FirstOrDefaultAsync(cancellationToken);
 
-                if (skinAnalysis != null)
-                {
-                    _context.SkinAnalysis.Remove(skinAnalysis);
+                if (skinAnalysis == null) return false;
+                _context.SkinAnalysis.Remove(skinAnalysis);
 
-                    await _context.SaveChangesAsync(cancellationToken);
-                }
+                await _context.SaveChangesAsync(cancellationToken);
+                
 
-                return Unit.Value;
+                return true;
             }
         }
     }

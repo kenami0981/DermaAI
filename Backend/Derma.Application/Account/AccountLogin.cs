@@ -25,13 +25,16 @@ namespace Derma.Application.Account
 
         public class Handler : IRequestHandler<Command, string?>
         {
+
             private readonly UserManager<AppUser> _userManager;
             private readonly ITokenService _tokenService;
 
             public Handler(UserManager<AppUser> userManager, ITokenService tokenService)
             {
+
                 _userManager = userManager;
                 _tokenService = tokenService;
+
             }
 
             public async Task<string?> Handle(Command request, CancellationToken cancellationToken)
@@ -39,9 +42,10 @@ namespace Derma.Application.Account
                 var user = await _userManager.FindByEmailAsync(request.Email);
 
                 if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-                    return null; 
+                    return null;
+                var roles = await _userManager.GetRolesAsync(user);
+                return _tokenService.CreateToken(user, roles);
 
-                return _tokenService.CreateToken(user);
             }
         }
     }

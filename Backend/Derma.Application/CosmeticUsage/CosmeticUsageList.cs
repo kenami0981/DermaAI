@@ -12,7 +12,11 @@ namespace Derma.Application.CosmeticUsage
 {
     public class CosmeticUsageList
     {
-        public class Query : IRequest<List<Derma.Domain.CosmeticUsage>> { }
+        public class Query : IRequest<List<Derma.Domain.CosmeticUsage>>
+        {
+            public Guid UserId { get; set; }
+            public bool IsAdmin { get; set; }
+        }
 
         public class Handler : IRequestHandler<Query, List<Derma.Domain.CosmeticUsage>> {
             private readonly DataContext _context;
@@ -20,8 +24,14 @@ namespace Derma.Application.CosmeticUsage
                 _context = context;
             }
 
-            public async Task<List<Derma.Domain.CosmeticUsage>> Handle(Query request, CancellationToken cancellationToken) {
-                return await _context.CosmeticUsage.ToListAsync();
+            public async Task<List<Derma.Domain.CosmeticUsage>> Handle(Query request, CancellationToken cancellationToken)
+            {
+                var query = _context.CosmeticUsage.AsQueryable();
+
+                if (!request.IsAdmin)
+                    query = query.Where(c => c.userId == request.UserId);
+
+                return await query.ToListAsync(cancellationToken);
             }
         }
     }

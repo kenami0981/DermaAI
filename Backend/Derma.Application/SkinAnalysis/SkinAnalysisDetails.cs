@@ -11,10 +11,13 @@ namespace Derma.Application.SkinAnalysis
 {
     public class SkinAnalysisDetails
     {
-        public class Query : IRequest<Derma.Domain.SkinAnalysis>
+        public class Query : IRequest<Derma.Domain.SkinAnalysis?>
         {
             public Guid Id { get; set; }
+            public Guid UserId { get; set; }
+            public bool IsAdmin { get; set; }
         }
+
 
         public class Handler : IRequestHandler<Query, Derma.Domain.SkinAnalysis>
         {
@@ -23,12 +26,17 @@ namespace Derma.Application.SkinAnalysis
             {
                 _context = context;
             }
-            public async Task<Derma.Domain.SkinAnalysis> Handle(Query request, CancellationToken cancellationToken)
+            public async Task<Derma.Domain.SkinAnalysis?> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.SkinAnalysis
+                var query = _context.SkinAnalysis
                     .Include(a => a.Tags)
                     .Include(a => a.Result)
-                    .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
+                    .Where(a => a.Id == request.Id);
+
+                if (!request.IsAdmin)
+                    query = query.Where(a => a.userId == request.UserId);
+
+                return await query.FirstOrDefaultAsync(cancellationToken);
             }
         }
     }
