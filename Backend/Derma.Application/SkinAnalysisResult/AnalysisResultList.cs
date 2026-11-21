@@ -6,7 +6,11 @@ namespace Derma.Application.AnalysisResult
 {
     public class AnalysisResultList
     {
-        public class Query : IRequest<List<Derma.Domain.AnalysisResult>> { }
+        public class Query : IRequest<List<Derma.Domain.AnalysisResult>>
+        {
+            public Guid UserId { get; set; }
+            public bool IsAdmin { get; set; }
+        }
 
         public class Handler : IRequestHandler<Query, List<Derma.Domain.AnalysisResult>>
         {
@@ -19,9 +23,13 @@ namespace Derma.Application.AnalysisResult
 
             public async Task<List<Derma.Domain.AnalysisResult>> Handle(Query request, CancellationToken cancellationToken)
             {
-                return await _context.AnalysisResult
-                    .Include(r => r.Detections)
-                    .ToListAsync(cancellationToken);
+                var query = _context.AnalysisResult.Include(r => r.Detections).AsQueryable();
+
+                if (!request.IsAdmin)
+                    query = query.Where(r => _context.SkinAnalysis
+                        .Any(a => a.Id == r.skinAnalysisId && a.userId == request.UserId));
+
+                return await query.ToListAsync(cancellationToken);
             }
         }
     }

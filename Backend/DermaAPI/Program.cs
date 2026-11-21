@@ -24,7 +24,7 @@ builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200");
+        policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:5173");
     });
 });
 builder.Services.AddMediatR(cfg =>
@@ -70,7 +70,7 @@ builder.Services.AddAuthentication(cfg => {
         ValidateAudience = false,
         ClockSkew = TimeSpan.Zero
     };
-}).AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null); ;
+}).AddScheme<AuthenticationSchemeOptions, ApiKeyAuthHandler>("ApiKey", null);
 var app = builder.Build();
 app.Use(async (ctx, next) =>
 {
@@ -93,6 +93,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -103,6 +104,16 @@ try
 {
     var context = services.GetRequiredService<DataContext>();
     await context.Database.MigrateAsync();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+
+    if (!await roleManager.RoleExistsAsync("Admin"))
+        await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
+
+    var adminEmail = builder.Configuration["ApplicationSettings:AdminEmail"];
+    var admin = adminEmail == null ? null : await userManager.FindByEmailAsync(adminEmail);
+    if (admin != null && !await userManager.IsInRoleAsync(admin, "Admin"))
+        await userManager.AddToRoleAsync(admin, "Admin");
     await Seed.SeedData(context);
 }
 catch (Exception ex)

@@ -48,7 +48,6 @@ namespace Derma.Application.SkinAnalysis
 
                 var skinAnalysis = request.SkinAnalysis;
 
-                skinAnalysis.Id = Guid.NewGuid();
                 skinAnalysis.userId = id;
 
                 await _context.SkinAnalysis.AddAsync(

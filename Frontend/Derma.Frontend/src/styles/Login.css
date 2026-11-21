@@ -1,0 +1,114 @@
+
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f7f6;
+    padding: 20px;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.login-card h1 {
+    text-align: center;
+    color: #368b78;
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #777;
+    margin-bottom: 25px;
+}
+
+.auth-tabs {
+    display: flex;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #ddd;
+}
+
+.auth-tabs button {
+    flex: 1;
+    padding: 12px;
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.auth-tabs button.active {
+    color: #368b78;
+    border-bottom: 3px solid #368b78;
+    font-weight: 600;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-group input {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: #368b78;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 13px;
+    background: #368b78;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background: #28715f;
+}
+
+.submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.login-error {
+    color: #d32f2f;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+}
+
+.auth-footer span {
+    color: #368b78;
+    font-weight: 600;
+    cursor: pointer;
+}
