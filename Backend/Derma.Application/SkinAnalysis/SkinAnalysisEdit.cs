@@ -27,6 +27,7 @@ namespace Derma.Application.SkinAnalysis
                 skinAnalysis.imageUrl = request.SkinAnalysis.imageUrl;
                 skinAnalysis.notes = request.SkinAnalysis.notes ?? skinAnalysis.notes;
                 skinAnalysis.uploadDate = request.SkinAnalysis.uploadDate;
+                skinAnalysis.Status = request.SkinAnalysis.Status;
                 await _context.SaveChangesAsync();
 
                 return Unit.Value;

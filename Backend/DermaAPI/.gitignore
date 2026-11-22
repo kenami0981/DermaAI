@@ -6,3 +6,5 @@ obj/
 *.cache
 node_modules/
 .env
+Outputs/*
+!Outputs/.gitkeep

@@ -89,7 +89,8 @@ namespace Derma.API.Controllers
             
         }
         [HttpPut("{id}")]
-        [Authorize]
+        // [Authorize]
+        [Authorize(AuthenticationSchemes = "Bearer,ApiKey")]
         public async Task<IActionResult> EditSkinAnalysis(Guid id, SkinAnalysis skinAnalysis)
         {
             skinAnalysis.Id = id;
