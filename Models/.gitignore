@@ -23,3 +23,7 @@ test*.*
 
 ../.vscode
 ../.vscode/settings.json
+.env
+*/logs
+*/.derma-python-exe
+*/build_env.log

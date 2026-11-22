@@ -14,17 +14,17 @@ RUNS_DIR = ROOT / "runs"
 
 # MODEL SELECTION
 MODEL_v3 = WEIGHTS_DIR / "best_v3.2.pt"
-MODEL_v4 = WEIGHTS_DIR / "best_v4.pt"
+MODEL_v4 = WEIGHTS_DIR / "best_v4.1.pt"
 
 AVAILABLE_MODELS = {
     "v3.2": MODEL_v3, # Acne (class 0)
-    "v4": MODEL_v4, # 5 acne classes
+    "v4.1": MODEL_v4, # 5 acne classes
 }
 
 
-CURRENT_VERSION = "v4"
+CURRENT_VERSION = "v3.2"
 BEST_MODEL = AVAILABLE_MODELS[
-    "v4"
+    "v3.2"
 ]
 
 
