@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Derma.API.Models;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Derma.API.Controllers
 {
@@ -13,21 +14,29 @@ namespace Derma.API.Controllers
     public class SkinAnalysisController : BaseApiController
     {
         private readonly IMediator _mediator;
+        private Guid CurrentUserId =>
+    Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : Guid.Empty;
+        private bool IsAdmin => User.IsInRole("Admin");
         public SkinAnalysisController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
+
         [HttpGet]
         [Authorize(AuthenticationSchemes = "Bearer,ApiKey")]
-        public async Task<ActionResult<List<SkinAnalysis>>> GetSkinAnalysis() {
-            return await _mediator.Send(new SkinAnalysisList.Query());
+        public async Task<ActionResult<List<SkinAnalysis>>> GetSkinAnalysis()
+        {
+            return await Mediator.Send(new SkinAnalysisList.Query { UserId = CurrentUserId, IsAdmin = IsAdmin });
         }
+
         [HttpGet("{id}")]
         [Authorize(AuthenticationSchemes = "Bearer,ApiKey")]
         public async Task<ActionResult<SkinAnalysis>> GetSkinAnalysis(Guid id)
         {
-            return await Mediator.Send(new SkinAnalysisDetails.Query { Id = id });
+            var result = await Mediator.Send(new SkinAnalysisDetails.Query
+            { Id = id, UserId = CurrentUserId, IsAdmin = IsAdmin });
+            return result == null ? NotFound() : result;
         }
         [HttpPost]
         [Authorize]
@@ -56,7 +65,7 @@ namespace Derma.API.Controllers
             var skinAnalysis = new Derma.Domain.SkinAnalysis
             {
                 Id = analysisId,
-                userId = Guid.Empty,   // TODO: JWT
+                userId = Guid.Empty,
                 notes = request.notes,
                 imageUrl = fileName,
                 uploadDate = request.uploadDate,
@@ -94,7 +103,7 @@ namespace Derma.API.Controllers
         public async Task<IActionResult> EditSkinAnalysis(Guid id, SkinAnalysis skinAnalysis)
         {
             skinAnalysis.Id = id;
-            await Mediator.Send(new SkinAnalysisEdit.Command { SkinAnalysis = skinAnalysis });
+            await Mediator.Send(new SkinAnalysisEdit.Command { SkinAnalysis = skinAnalysis, UserId = CurrentUserId, IsAdmin = IsAdmin });
             return Ok();
         }
         [HttpDelete("{id}")]
@@ -102,7 +111,7 @@ namespace Derma.API.Controllers
         public async Task<IActionResult> DeleteSkinAnalysis(Guid id)
         {
             await Mediator.Send(
-                new SkinAnalysisDelete.Command { Id = id });
+                new SkinAnalysisDelete.Command { Id = id , UserId = CurrentUserId, IsAdmin = IsAdmin });
 
             return Ok();
         }

@@ -22,6 +22,12 @@ namespace Derma.API.Services
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            //API key musi być traktowany jako admin
+            var identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Name, "AI"),
+                new Claim(ClaimTypes.Role, "Admin")
+            }, Scheme.Name);
             if (!Request.Headers.TryGetValue("X-Api-Key", out var provided))
                 return Task.FromResult(AuthenticateResult.NoResult());
 
@@ -33,8 +39,6 @@ namespace Derma.API.Services
                     Encoding.UTF8.GetBytes(expected)))
                 return Task.FromResult(AuthenticateResult.Fail("Nieprawidłowy klucz API."));
 
-            var identity = new ClaimsIdentity(
-                new[] { new Claim(ClaimTypes.Name, "AI") }, Scheme.Name);
 
             return Task.FromResult(AuthenticateResult.Success(
                 new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name)));

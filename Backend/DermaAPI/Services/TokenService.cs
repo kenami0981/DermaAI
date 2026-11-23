@@ -1,9 +1,11 @@
 ﻿using Derma.Application.Core;
 using Derma.Domain;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
 
 namespace Derma.API.Services
 {
@@ -16,13 +18,16 @@ namespace Derma.API.Services
             _config = config;
         }
 
-        public string CreateToken(AppUser user)
+        public string CreateToken(AppUser user, IList<string> roles)
         {
             var claims = new List<Claim>
             {
                 new(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new(ClaimTypes.Name, user.UserName!)
+
             };
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role));
 
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_config["ApplicationSettings:JWT_Secret"]!));
@@ -35,7 +40,12 @@ namespace Derma.API.Services
             };
 
             var handler = new JwtSecurityTokenHandler();
+
+            
+
             return handler.WriteToken(handler.CreateToken(descriptor));
         }
+
+        
     }
 }
