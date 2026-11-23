@@ -18,11 +18,12 @@ export const routes: RouteObject[] = [
                 path: "login",
                 element: <LoginPage />
             },
+            { path: "info", element: <MainPage /> },
+            { index: true, element: <MainPage /> }, 
             {
                 element: <ProtectedRoute />,
                 children: [
-                    { index: true, element: <MainPage /> },
-                    { path: "info", element: <MainPage /> },
+                     
                     { path: "analysis", element: <AnalysisList /> },
                     { path: "analysis/:id", element: <AnalysisDetails /> },
                     { path: "create-analysis", element: <AnalysisCreate /> },

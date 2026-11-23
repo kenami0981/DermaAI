@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import "../styles/Login.css";
+import { useAuth } from "../components/AuthContext";
 
 export function LoginPage() {
     const navigate = useNavigate();
@@ -15,7 +16,7 @@ export function LoginPage() {
 
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-
+    const { login } = useAuth();
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError("");
@@ -50,8 +51,8 @@ export function LoginPage() {
                     throw new Error("Nie otrzymano tokenu JWT.");
                 }
 
-                localStorage.setItem("token", token);
-                navigate("/", { replace: true });
+                login(response.data.token);
+                navigate("/analysis");
             }
         } catch (err: any) {
             setError(
