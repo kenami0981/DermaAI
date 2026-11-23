@@ -1,0 +1,22 @@
+name: derma-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - ipykernel
+  - numpy
+  - pandas
+  - matplotlib
+  - tqdm
+  - opencv
+  - pip:
+      - requests
+      - python-dotenv
+      - loguru
+      - torch
+      - torchvision
+      - ultralytics
+      - sahi
+      - mediapipe

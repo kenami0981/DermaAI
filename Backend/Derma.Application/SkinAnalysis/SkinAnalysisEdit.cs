@@ -39,7 +39,8 @@ namespace Derma.Application.SkinAnalysis
 
                 analysis.notes = request.SkinAnalysis.notes;
                 analysis.uploadDate = request.SkinAnalysis.uploadDate;
-
+                analysis.Status = request.SkinAnalysis.Status;
+                
                 var wanted = request.SkinAnalysis.Tags.Select(t => t.Tag).Distinct().ToList();
 
                 var toRemove = analysis.Tags.Where(t => !wanted.Contains(t.Tag)).ToList();

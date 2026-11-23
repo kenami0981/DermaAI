@@ -130,7 +130,7 @@ Follow these steps in order to build, train, and use the acne detection model.
 
 ### 5.1 For versions v3.2:
 
-#### 5.1.1 Data Preparation (`build_dataset_from_scratch.py`)
+#### 5.1.1 Data Preparation (`acne04_dataset_pipeline.py`)
 
 **Command:** `python Models/yolo/src/yolo_dataset_preparation_pipeline.py`
 
@@ -258,6 +258,25 @@ python -c "from ultralytics import YOLO; print('OK')"
 ```python
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+```
+
+### 6.5. OSError: [WinError 182] fbgemm.dll Error loading dependency
+
+**Symptom:** Script crashes immediately on import torch with `OSError: [WinError 182] System operacyjny nie może uruchomić %1. Error loading "...fbgemm.dll" or one of its dependencies.`
+**Cause:** Corrupted or mismatched PyTorch DLL files in a Conda environment on Windows, typically caused by conflicts between Conda and Pip package installations or a corrupted local cache.
+**Fix (In active env):**
+
+```powershell
+pip uninstall torch torchvision torchaudio -y
+
+```
+
+Manually delete leftover folders in `C:\Users\<Username>\anaconda3\envs\<environment_name>\Lib\site-packages` (`torch`, `torchvision`, `torchaudio`, and any related `.dist-info` folders), then reinstall cleanly:
+
+```powershell
+pip install --no-cache-dir torch torchvision torchaudio
+python -c "import torch; print(torch.__version__)"
+
 ```
 
 ---
